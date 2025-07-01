@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useNavigate } from 'react-router-dom';
 
 interface BookCardProps {
   title: string;
@@ -21,10 +22,14 @@ export default function BookCard({
   completedChapters,
   onClick
 }: BookCardProps) {
+  const navigate = useNavigate();
+  const handleClick = () => {
+    navigate(`/books/${encodeURIComponent(title)}`);
+  };
   return (
     <Card 
       className="book-shadow hover:shadow-lg transition-shadow cursor-pointer group"
-      onClick={onClick}
+      onClick={handleClick}
     >
       <CardHeader className="pb-3">
         <div className="flex gap-4">

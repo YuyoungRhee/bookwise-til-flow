@@ -1,73 +1,97 @@
-# Welcome to your Lovable project
+## 📚 프로젝트 개요 – BookPlanner
 
-## Project info
+### 🎯 목적
+공부를 목적으로 책을 읽는 사람들을 위한 **계획형 독서 플랫폼**.  
+단순한 체크리스트가 아니라, **챕터 단위 학습 계획 → 실행 → 기록 → 자동 정리(TIL)** 까지를 도와주는 시스템.  
+최소한의 입력으로, 사용자에게 시각적이고 정돈된 학습 피드백을 제공함.
 
-**URL**: https://lovable.dev/projects/43088ee9-0236-4080-8990-763864b670b0
+---
 
-## How can I edit this code?
+## 🧑‍💻 페르소나
 
-There are several ways of editing your application.
+**꾸준히 서적으로 공부한 내용을 기록하고 확인하고 싶은 개발자 – 멍구(2n세)**  
+- **직업**: 웹 개발자  
+- **라이프스타일**: 평일 오전 1~2시간은 서적 공부, 주말엔 몰아서 학습  
+- **목표**: 기술 서적을 꾸준히 학습하고 기록을 정리해두는 습관 만들기  
+- **니즈**:  
+  - 학습 계획을 자동으로 세워주는 도구  
+  - 하루에 한 번 학습 내용을 정리하고 싶음  
+  - 챕터별 진도를 한눈에 확인하고 싶음  
+- **페인 포인트**:  
+  - 종이 책으로 공부하면 진도와 학습 이력 추적이 불편함  
+  - 매번 오늘 뭐 했는지 기록 정리하기가 귀찮음  
+  - 목표 설정 없이 책을 읽다 보면 중간에 흐지부지됨  
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/43088ee9-0236-4080-8990-763864b670b0) and start prompting.
+## 📆 사용자 시나리오
 
-Changes made via Lovable will be committed automatically to this repo.
+**로하의 주말 학습 루틴**
 
-**Use your preferred IDE**
+**상황**: 멍구는 '이펙티브 자바'를 공부 중이고, 주말에 2시간을 할애해서 3개 챕터를 정리하고자 함.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+**시나리오 흐름:**
+1. BookPlanner 웹앱 접속
+2. '이펙티브 자바'를 선택하고 오늘 학습할 챕터 목록 확인
+3. 각 챕터별로 간단히 공부한 내용을 입력
+4. 따로 저장이나 완료 버튼 없이 자동으로 학습 완료 처리됨
+5. 오늘 입력한 모든 기록은 '오늘의 학습 기록(TIL)'에 자동 정리됨
+6. 기록을 마친 후, 홈에서 전체 진행률과 다음 학습 예정 분량 확인
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+## 🙋 사용자 스토리
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+> “공부하는 개발자로서, 저는 기술 서적을 체계적으로 공부하고 그 기록을 자연스럽게 정리하고 싶습니다.  
+> 그래서 내가 어떤 흐름으로 공부해 왔는지를 쉽게 돌아볼 수 있기를 바랍니다.”
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+---
 
-# Step 3: Install the necessary dependencies.
-npm i
+## ✅ 인수 조건
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+- **Given**: 사용자가 BookPlanner에 접속했을 때  
+- **When**: 책을 선택하고 챕터별로 학습 내용을 입력했을 때  
+- **Then**:  
+  - 해당 챕터는 자동으로 학습 완료 처리되고  
+  - 오늘 작성된 기록은 자동으로 'TIL'에 정리되어야 한다
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 💎 핵심 가치 제안
 
-**Use GitHub Codespaces**
+| 가치 요소 | 설명 |
+|-----------|------|
+| 📌 자동 계획 수립 | 목표일 또는 하루 분량만 입력하면 자동으로 학습 스케줄 생성 |
+| 📝 무마찰 기록 방식 | 기록만 하면 완료 체크 + TIL 정리까지 자동 처리 |
+| 📅 흐름 기반 시각화 | 하루 학습 내역, 전체 진도, 과거 기록을 달력 형태로 제공 |
+| 🔁 지속 가능한 루틴 | ‘오늘 한 것’을 확인할 수 있어 루틴 유지에 효과적 |
+| 📚 챕터 중심 설계 | 독서가 아닌 “공부하는 책”에 최적화된 구조 |
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 🧩 핵심 기능
 
-This project is built with:
+- 사용자가 공부할 책을 선택하고 챕터 목록을 입력하거나 불러올 수 있음
+- 하루에 몇 개 챕터를 학습할지 또는 목표일을 기준으로 자동 계획 수립
+- 오늘 학습할 챕터를 보여주고, 작성한 기록을 기반으로 학습 완료 자동 체크
+- 기록은 챕터별로 입력하지만, **오늘 작성된 내용은 자동으로 TIL(Today I Learned)** 로 묶임
+- 홈 대시보드에서 오늘 학습 여부, 전체 진행률, 최근 TIL을 한눈에 확인 가능
+- 챕터 기록, TIL 기록은 날짜별/책별/챕터별로 필터링 가능
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## ⚙️ 구현 범위
 
-Simply open [Lovable](https://lovable.dev/projects/43088ee9-0236-4080-8990-763864b670b0) and click on Share -> Publish.
+- **핵심 흐름 구현 (MVP 기준)**:
+  - 책 검색/선택
+  - 챕터 입력 or 불러오기
+  - 학습 계획 수립
+  - 챕터별 기록 작성
+  - 기록 → 학습 완료 자동 체크
+  - 오늘 작성한 기록 자동 TIL화
+  - 홈 대시보드 (진행률 + 오늘 학습 상태 요약)
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- **데이터 연동 없이도 테스트 가능**
+  - 목업 데이터 기반 챕터 기록
+  - 예시 책/챕터/기록 제공
+  - TIL 자동 정리 흐름 확인 가능

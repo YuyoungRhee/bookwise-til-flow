@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import BookSearch from "./pages/BookSearch";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import BookDetail from './pages/BookDetail';
+import BookAddWizard from './pages/BookAddWizard';
 
 const queryClient = new QueryClient();
 
@@ -20,6 +22,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/search" element={<BookSearch />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/books/:bookId" element={<BookDetail />} />
+          <Route path="/add-book/:title" element={<BookAddWizard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

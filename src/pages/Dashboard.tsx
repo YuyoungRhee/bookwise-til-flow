@@ -5,25 +5,63 @@ import BookCard from '@/components/BookCard';
 import ChapterItem from '@/components/ChapterItem';
 import { Book, Calendar, Edit, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
-  // Mock data for demonstration
-  const currentBooks = [
-    {
-      title: "클린 코드",
-      author: "로버트 C. 마틴",
-      progress: 65,
-      totalChapters: 17,
-      completedChapters: 11,
-    },
-    {
-      title: "자바스크립트 완벽 가이드",
-      author: "데이비드 플래너건",
-      progress: 23,
-      totalChapters: 28,
-      completedChapters: 6,
-    }
-  ];
+  const [currentBooks, setCurrentBooks] = useState(() => {
+    const stored = window.localStorage.getItem('dashboardBooks');
+    return stored ? JSON.parse(stored) : [
+      {
+        title: "클린 코드",
+        author: "로버트 C. 마틴",
+        progress: 65,
+        totalChapters: 17,
+        completedChapters: 11,
+      },
+      {
+        title: "자바스크립트 완벽 가이드",
+        author: "데이비드 플래너건",
+        progress: 23,
+        totalChapters: 28,
+        completedChapters: 6,
+      },
+      {
+        title: "리팩터링 2판",
+        author: "마틴 파울러",
+        progress: 10,
+        totalChapters: 12,
+        completedChapters: 2,
+        pages: 550,
+        chapters: [
+          '목차',
+          '초판의 추천사',
+          '들어가며',
+          '한국어판 독자를 위한 안내',
+          'CHAPTER 01 리팩터링: 첫 번째 예시',
+          'CHAPTER 02 리팩터링 원칙',
+          'CHAPTER 03 코드에서 나는 악취',
+          'CHAPTER 04 테스트 구축하기',
+          'CHAPTER 05 리팩터링 카탈로그 보는 법',
+          'CHAPTER 06 기본적인 리팩터링',
+          'CHAPTER 07 캡슐화',
+          'CHAPTER 08 기능 이동',
+          'CHAPTER 09 데이터 조직화',
+          'CHAPTER 10 조건부 로직 간소화',
+          'CHAPTER 11 API 리팩터링',
+          'CHAPTER 12 상속 다루기',
+          '부록 A 리팩터링 목록',
+          '부록 B 악취 제거 기법',
+        ],
+        plan: {
+          targetDate: '2024-08-31',
+          dailyChapters: '1',
+          dailyPages: '',
+          expectedEnd: '2024-08-31',
+          autoDaily: null
+        }
+      }
+    ];
+  });
 
   const todayChapters = [
     { number: 12, title: "주석", isCompleted: false, isToday: true },
@@ -34,6 +72,138 @@ export default function Dashboard() {
     { title: "의미 있는 이름", bookTitle: "클린 코드", date: "2024-07-01" },
     { title: "함수", bookTitle: "클린 코드", date: "2024-06-30" },
   ];
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem('dashboardBooks');
+    let books = stored ? JSON.parse(stored) : [];
+    const hasRefactoring = books.some((b: any) => b.title === '리팩터링 2판');
+    if (!hasRefactoring) {
+      books = [
+        ...books,
+        {
+          title: "리팩터링 2판",
+          author: "마틴 파울러",
+          progress: 10,
+          totalChapters: 12,
+          completedChapters: 2,
+          pages: 550,
+          chapters: [
+            '목차',
+            '초판의 추천사',
+            '들어가며',
+            '한국어판 독자를 위한 안내',
+            'CHAPTER 01 리팩터링: 첫 번째 예시',
+            'CHAPTER 02 리팩터링 원칙',
+            'CHAPTER 03 코드에서 나는 악취',
+            'CHAPTER 04 테스트 구축하기',
+            'CHAPTER 05 리팩터링 카탈로그 보는 법',
+            'CHAPTER 06 기본적인 리팩터링',
+            'CHAPTER 07 캡슐화',
+            'CHAPTER 08 기능 이동',
+            'CHAPTER 09 데이터 조직화',
+            'CHAPTER 10 조건부 로직 간소화',
+            'CHAPTER 11 API 리팩터링',
+            'CHAPTER 12 상속 다루기',
+            '부록 A 리팩터링 목록',
+            '부록 B 악취 제거 기법',
+          ],
+          plan: {
+            targetDate: '2024-08-31',
+            dailyChapters: '1',
+            dailyPages: '',
+            expectedEnd: '2024-08-31',
+            autoDaily: null
+          }
+        }
+      ];
+      window.localStorage.setItem('dashboardBooks', JSON.stringify(books));
+    }
+    setCurrentBooks(books);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      const book = e.detail;
+      if (!currentBooks.some(b => b.title === book.title)) {
+        let newBook;
+        if (book.title === '이것이 자바다') {
+          newBook = {
+            title: book.title,
+            author: book.author,
+            progress: 0,
+            totalChapters: 25,
+            completedChapters: 0,
+            pages: 1112,
+            parts: [
+              {
+                name: 'PART 01. 자바 언어의 기초',
+                chapters: [
+                  'Chapter 01. 자바 시작하기',
+                  'Chapter 02. 변수와 타입',
+                  'Chapter 03. 연산자',
+                  'Chapter 04. 조건문과 반복문',
+                ]
+              },
+              {
+                name: 'PART 02. 객체지향 프로그래밍',
+                chapters: [
+                  'Chapter 05. 참조 타입',
+                  'Chapter 06. 클래스',
+                  'Chapter 07. 상속',
+                  'Chapter 08. 인터페이스',
+                  'Chapter 09. 중첩 선언과 익명 객체',
+                  'Chapter 10. 라이브러리와 모듈',
+                  'Chapter 11. 예외 처리',
+                ]
+              },
+              {
+                name: 'PART 03. 라이브러리 활용',
+                chapters: [
+                  'Chapter 12. java.base 모듈',
+                  'Chapter 13. 제네릭',
+                  'Chapter 14. 멀티 스레드',
+                  'Chapter 15. 컬렉션 자료구조',
+                  'Chapter 16. 람다식',
+                  'Chapter 17. 스트림 요소 처리',
+                ]
+              },
+              {
+                name: 'PART 04. 데이터 입출력',
+                chapters: [
+                  'Chapter 18. 데이터 입출력',
+                  'Chapter 19. 네트워크 입출력',
+                  'Chapter 20. 데이터베이스 입출력',
+                ]
+              },
+              {
+                name: 'PART 05. 최신 자바의 강화된 언어 기능',
+                chapters: [
+                  'Chapter 21. 자바 21에서 강화된 언어 및 라이브러리',
+                ]
+              },
+              {
+                name: '부록 (Appendix)',
+                chapters: [
+                  'Appendix 01. 데이터베이스 입출력 (MySQL용)',
+                  'Appendix 02. Java UI - Swing',
+                  'Appendix 03. Java UI - JavaFX',
+                  'Appendix 04. NIO 기반 입출력 및 네트워킹',
+                ]
+              },
+            ],
+            plan: book.plan || undefined,
+          };
+        } else {
+          newBook = { ...book, plan: book.plan || undefined };
+        }
+        const updated = [...currentBooks, newBook];
+        setCurrentBooks(updated);
+        window.localStorage.setItem('dashboardBooks', JSON.stringify(updated));
+      }
+    };
+    window.addEventListener('add-book', handler);
+    return () => window.removeEventListener('add-book', handler);
+  }, [currentBooks]);
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8">

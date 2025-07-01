@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Book } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface BookResult {
   title: string;
@@ -20,44 +21,50 @@ export default function BookSearch() {
   const [searchResults, setSearchResults] = useState<BookResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const navigate = useNavigate();
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-
     setIsLoading(true);
     setHasSearched(true);
-
-    // Mock API call - in real implementation, you would call Aladin API
+    // 완전 mock 데이터로 대체
     setTimeout(() => {
       const mockResults: BookResult[] = [
         {
-          title: "클린 코드",
-          author: "로버트 C. 마틴",
-          publisher: "인사이트",
-          pubDate: "2013-12-24",
-          cover: "/placeholder.svg",
-          isbn: "9788966260959",
-          description: "애자일 소프트웨어 장인 정신"
+          title: '이것이 자바다',
+          author: '신용권, 임영균',
+          publisher: '한빛미디어',
+          pubDate: '2023-01-01',
+          cover: '/placeholder.svg',
+          isbn: '9788968481901',
+          description: '자바 입문부터 실전까지 완벽하게 배우는 책',
         },
         {
-          title: "자바스크립트 완벽 가이드",
-          author: "데이비드 플래너건",
-          publisher: "한빛미디어",
-          pubDate: "2022-06-01",
-          cover: "/placeholder.svg",
-          isbn: "9791162245927",
-          description: "모던 자바스크립트의 모든 것"
-        }
-      ];
+          title: '클린 코드',
+          author: '로버트 C. 마틴',
+          publisher: '인사이트',
+          pubDate: '2013-12-24',
+          cover: '/placeholder.svg',
+          isbn: '9788966260959',
+          description: '애자일 소프트웨어 장인 정신',
+        },
+        {
+          title: '자바스크립트 완벽 가이드',
+          author: '데이비드 플래너건',
+          publisher: '한빛미디어',
+          pubDate: '2022-06-01',
+          cover: '/placeholder.svg',
+          isbn: '9791162245927',
+          description: '모던 자바스크립트의 모든 것',
+        },
+      ].filter(b => b.title.includes(searchQuery) || b.author.includes(searchQuery) || searchQuery === '');
       setSearchResults(mockResults);
       setIsLoading(false);
-    }, 1000);
+    }, 500);
   };
 
   const handleAddBook = (book: BookResult) => {
-    // In real implementation, this would add the book to user's library
-    console.log('Adding book:', book);
-    // Could show a toast notification here
+    navigate(`/add-book/${encodeURIComponent(book.title)}`, { state: { book } });
   };
 
   return (
