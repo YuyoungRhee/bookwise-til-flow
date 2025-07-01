@@ -3,10 +3,10 @@ import { cn } from '@/lib/utils';
 import { Book, Calendar, Search, Edit } from 'lucide-react';
 
 const navItems = [
-  { path: '/', label: '대시보드', icon: Book },
-  { path: '/search', label: '책 검색', icon: Search },
-  { path: '/plan', label: '학습 계획', icon: Calendar },
-  { path: '/notes', label: '학습 기록', icon: Edit },
+  { path: '/', label: '홈', icon: Book },
+  { path: '/books', label: '책 목록', icon: Search },
+  { path: '/note-history', label: '기록 히스토리', icon: Edit },
+  { path: '/settings', label: '설정', icon: Calendar },
 ];
 
 export default function Navigation() {
