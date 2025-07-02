@@ -3,10 +3,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ChapterItemProps {
   number: number;
   title: string;
+  bookTitle?: string;
   isCompleted: boolean;
   isToday?: boolean;
   hasNotes?: boolean;
@@ -16,17 +18,29 @@ interface ChapterItemProps {
 export default function ChapterItem({
   number,
   title,
+  bookTitle,
   isCompleted,
   isToday,
   hasNotes,
   onClick
 }: ChapterItemProps) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (bookTitle) {
+      // NoteWriting 페이지로 이동
+      navigate(`/note-writing/${encodeURIComponent(bookTitle)}?chapter=${number}`);
+    }
+  };
+
   return (
     <Card className={cn(
       "transition-all duration-200 hover:book-shadow cursor-pointer group",
       isCompleted && "bg-accent/10 border-accent/30",
       isToday && "ring-2 ring-primary ring-offset-2"
-    )} onClick={onClick}>
+    )} onClick={handleClick}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -47,9 +61,14 @@ export default function ChapterItem({
                 "font-medium study-text truncate",
                 isCompleted && "text-muted-foreground line-through"
               )}>
-                {title}
+                {bookTitle || title}
               </h3>
               <div className="flex items-center gap-2 mt-1">
+                {bookTitle && (
+                  <p className="text-sm text-muted-foreground truncate">
+                    {title}
+                  </p>
+                )}
                 {isToday && (
                   <Badge variant="default" className="text-xs">
                     오늘 학습
@@ -67,8 +86,12 @@ export default function ChapterItem({
             variant={isCompleted ? "outline" : "default"}
             size="sm"
             className="ml-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClick();
+            }}
           >
-            {isCompleted ? "수정" : "학습하기"}
+            {isCompleted ? "수정" : "학습 기록하기"}
           </Button>
         </div>
       </CardContent>

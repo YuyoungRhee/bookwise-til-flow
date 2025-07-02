@@ -1,102 +1,144 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useNavigate } from 'react-router-dom';
 
-interface Record {
-  id: number;
-  chapter: string;
-  date: string;
-  content: string;
+// 리팩터링 2판 대표 챕터 mock
+const chapters = [
+  'CHAPTER 01 리팩터링: 첫 번째 예시',
+  'CHAPTER 02 리팩터링 원칙',
+  'CHAPTER 03 코드에서 나는 악취',
+  'CHAPTER 04 테스트 구축하기',
+  'CHAPTER 05 리팩터링 카탈로그 보는 법',
+  'CHAPTER 06 기본적인 리팩터링',
+  'CHAPTER 07 캡슐화',
+  'CHAPTER 08 기능 이동',
+  'CHAPTER 09 데이터 조직화',
+  'CHAPTER 10 조건부 로직 간소화',
+  'CHAPTER 11 API 리팩터링',
+  'CHAPTER 12 상속 다루기',
+];
+
+// 1,2챕터는 기록이 이미 있음
+const initialRecords: Record<number, { content: string; date: string }> = {
+  0: { content: '1장 기록 예시: 리팩터링의 실제 적용을 봄.', date: '2024-07-01' },
+  1: { content: '2장 기록 예시: 원칙을 이해함.', date: '2024-07-02' },
+  // 2~11번 인덱스(3~12장)는 기록 없음
+};
+
+interface RecordManagerProps {
+  initialChapter?: number;
+  bookTitle?: string;
 }
 
-export default function RecordManager() {
-  const [records, setRecords] = useState<Record[]>([
-    { id: 1, chapter: '1장: 시작하기', date: '2024-07-01', content: '핵심 개념 정리' },
-    { id: 2, chapter: '2장: 기초 다지기', date: '2024-07-02', content: '예제 코드 실습' },
-  ]);
-  const [newRecord, setNewRecord] = useState({ chapter: '', date: '', content: '' });
-  const [editId, setEditId] = useState<number | null>(null);
-  const [editContent, setEditContent] = useState('');
+export default function RecordManager({ initialChapter, bookTitle }: RecordManagerProps) {
+  const [currentChapter, setCurrentChapter] = useState(initialChapter !== undefined ? initialChapter : 2);
+  const [records, setRecords] = useState(initialRecords);
+  const navigate = useNavigate();
 
-  const addRecord = () => {
-    if (!newRecord.chapter || !newRecord.date || !newRecord.content) return;
-    setRecords([
-      ...records,
-      { id: Date.now(), ...newRecord }
-    ]);
-    setNewRecord({ chapter: '', date: '', content: '' });
+  // initialChapter가 변경되면 currentChapter 업데이트
+  useEffect(() => {
+    if (initialChapter !== undefined) {
+      setCurrentChapter(initialChapter);
+    }
+  }, [initialChapter]);
+
+  const goPrev = () => {
+    setCurrentChapter((idx) => Math.max(0, idx - 1));
   };
-  const startEdit = (id: number, content: string) => {
-    setEditId(id);
-    setEditContent(content);
+  const goNext = () => {
+    setCurrentChapter((idx) => Math.min(chapters.length - 1, idx + 1));
   };
-  const saveEdit = (id: number) => {
-    setRecords(records.map(r => r.id === id ? { ...r, content: editContent } : r));
-    setEditId(null);
-    setEditContent('');
+
+  const record = records[currentChapter];
+  const hasRecord = !!record;
+
+  const handleWriteRecord = () => {
+    if (bookTitle) {
+      navigate(`/note-writing/${encodeURIComponent(bookTitle)}?chapter=${currentChapter}`);
+    } else {
+      // fallback: 현재 URL에서 bookId 추출
+      const pathParts = window.location.pathname.split('/');
+      const bookId = pathParts[pathParts.length - 1];
+      if (bookId) {
+        navigate(`/note-writing/${bookId}?chapter=${currentChapter}`);
+      }
+    }
   };
-  const deleteRecord = (id: number) => {
-    setRecords(records.filter(r => r.id !== id));
+
+  const handleEditRecord = () => {
+    if (bookTitle) {
+      navigate(`/note-writing/${encodeURIComponent(bookTitle)}?chapter=${currentChapter}`);
+    } else {
+      // fallback: 현재 URL에서 bookId 추출
+      const pathParts = window.location.pathname.split('/');
+      const bookId = pathParts[pathParts.length - 1];
+      if (bookId) {
+        navigate(`/note-writing/${bookId}?chapter=${currentChapter}`);
+      }
+    }
   };
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>기록 작성</CardTitle>
+          <CardTitle>챕터별 학습 기록</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Button onClick={goPrev} disabled={currentChapter === 0} size="sm">이전</Button>
+            <span className="font-bold text-lg">{chapters[currentChapter]}</span>
+            <Button onClick={goNext} disabled={currentChapter === chapters.length - 1} size="sm">다음</Button>
+          </div>
+          
+          {/* 액션 버튼 */}
           <div className="flex gap-2">
-            <Input
-              placeholder="챕터명"
-              value={newRecord.chapter}
-              onChange={e => setNewRecord({ ...newRecord, chapter: e.target.value })}
-              className="w-40"
-            />
-            <Input
-              type="date"
-              value={newRecord.date}
-              onChange={e => setNewRecord({ ...newRecord, date: e.target.value })}
-              className="w-32"
-            />
-            <Textarea
-              placeholder="학습 내용"
-              value={newRecord.content}
-              onChange={e => setNewRecord({ ...newRecord, content: e.target.value })}
-              className="w-64"
-            />
-            <Button onClick={addRecord}>추가</Button>
+            {hasRecord ? (
+              <Button onClick={handleEditRecord} variant="outline">
+                수정하기
+              </Button>
+            ) : (
+              <Button onClick={handleWriteRecord}>
+                기록하기
+              </Button>
+            )}
+          </div>
+
+          {/* 기록 내용 표시 */}
+          <div>
+            {hasRecord ? (
+              <div>
+                <div className="mb-2 text-muted-foreground text-sm">기록일: {record.date}</div>
+                <Textarea 
+                  value={record.content} 
+                  readOnly 
+                  className="w-full min-h-[200px] focus:ring-0 focus:border-input focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none" 
+                />
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                해당 챕터 기록이 존재하지 않습니다.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>히스토리</CardTitle>
+          <CardTitle>전체 기록 히스토리</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {records.map(r => (
-            <div key={r.id} className="flex items-center gap-2 border-b py-2">
-              <span className="w-40">{r.chapter}</span>
-              <span className="w-32">{r.date}</span>
-              {editId === r.id ? (
-                <>
-                  <Textarea
-                    value={editContent}
-                    onChange={e => setEditContent(e.target.value)}
-                    className="w-64"
-                  />
-                  <Button size="sm" onClick={() => saveEdit(r.id)}>저장</Button>
-                  <Button size="sm" variant="outline" onClick={() => setEditId(null)}>취소</Button>
-                </>
-              ) : (
-                <>
-                  <span className="w-64">{r.content}</span>
-                  <Button size="sm" variant="outline" onClick={() => startEdit(r.id, r.content)}>수정</Button>
-                  <Button size="sm" variant="destructive" onClick={() => deleteRecord(r.id)}>삭제</Button>
-                </>
-              )}
+          {chapters.map((ch, idx) => (
+            <div 
+              key={idx} 
+              className="flex items-center gap-2 border-b py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+              onClick={() => setCurrentChapter(idx)}
+            >
+              <span className="w-56">{ch}</span>
+              <span className="w-32">{records[idx]?.date || '-'}</span>
+              <span className="w-64 truncate">{records[idx]?.content || '-'}</span>
             </div>
           ))}
         </CardContent>

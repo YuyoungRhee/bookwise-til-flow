@@ -16,9 +16,10 @@ interface ChapterManagerProps {
   parts?: { name: string; chapters: string[] }[];
   chapters?: string[];
   bookId?: string;
+  setChapters?: (chapters: string[]) => void;
 }
 
-export default function ChapterManager({ parts, chapters, bookId }: ChapterManagerProps) {
+export default function ChapterManager({ parts, chapters, bookId, setChapters: setChaptersProp }: ChapterManagerProps) {
   const { bookId: urlBookId } = useParams();
   const bookIdDecoded = decodeURIComponent(urlBookId || '');
   const isRefactoring2 = bookIdDecoded.includes('리팩터링') && bookIdDecoded.includes('2판');
@@ -57,20 +58,26 @@ export default function ChapterManager({ parts, chapters, bookId }: ChapterManag
 
   const addChapter = () => {
     if (!newTitle.trim()) return;
-    setChapters([...chaptersState, { id: Date.now(), title: newTitle, isCompleted: false, isPart: false }]);
+    const newChapters = [...chaptersState, { id: Date.now(), title: newTitle, isCompleted: false, isPart: false }];
+    setChapters(newChapters);
     setNewTitle('');
+    if (setChaptersProp) setChaptersProp(newChapters.filter(ch => !ch.isPart).map(ch => ch.title));
   };
   const startEdit = (id: number, title: string) => {
     setEditId(id);
     setEditTitle(title);
   };
   const saveEdit = (id: number) => {
-    setChapters(chaptersState.map(ch => ch.id === id ? { ...ch, title: editTitle } : ch));
+    const newChapters = chaptersState.map(ch => ch.id === id ? { ...ch, title: editTitle } : ch);
+    setChapters(newChapters);
     setEditId(null);
     setEditTitle('');
+    if (setChaptersProp) setChaptersProp(newChapters.filter(ch => !ch.isPart).map(ch => ch.title));
   };
   const deleteChapter = (id: number) => {
-    setChapters(chaptersState.filter(ch => ch.id !== id));
+    const newChapters = chaptersState.filter(ch => ch.id !== id);
+    setChapters(newChapters);
+    if (setChaptersProp) setChaptersProp(newChapters.filter(ch => !ch.isPart).map(ch => ch.title));
   };
   const toggleComplete = (id: number) => {
     setChapters(chaptersState.map(ch => ch.id === id ? { ...ch, isCompleted: !ch.isCompleted } : ch));

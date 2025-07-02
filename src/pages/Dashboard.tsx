@@ -33,10 +33,6 @@ export default function Dashboard() {
         completedChapters: 2,
         pages: 550,
         chapters: [
-          '목차',
-          '초판의 추천사',
-          '들어가며',
-          '한국어판 독자를 위한 안내',
           'CHAPTER 01 리팩터링: 첫 번째 예시',
           'CHAPTER 02 리팩터링 원칙',
           'CHAPTER 03 코드에서 나는 악취',
@@ -49,8 +45,6 @@ export default function Dashboard() {
           'CHAPTER 10 조건부 로직 간소화',
           'CHAPTER 11 API 리팩터링',
           'CHAPTER 12 상속 다루기',
-          '부록 A 리팩터링 목록',
-          '부록 B 악취 제거 기법',
         ],
         plan: {
           targetDate: '2024-08-31',
@@ -64,8 +58,8 @@ export default function Dashboard() {
   });
 
   const todayChapters = [
-    { number: 12, title: "주석", isCompleted: false, isToday: true },
-    { number: 13, title: "형식 맞추기", isCompleted: false, isToday: true },
+    { number: 12, title: "주석", bookTitle: "클린 코드", isCompleted: false, isToday: true },
+    { number: 3, title: "코드에서 나는 악취", bookTitle: "리팩터링 2판", isCompleted: false, isToday: true },
   ];
 
   const recentNotes = [
@@ -88,10 +82,6 @@ export default function Dashboard() {
           completedChapters: 2,
           pages: 550,
           chapters: [
-            '목차',
-            '초판의 추천사',
-            '들어가며',
-            '한국어판 독자를 위한 안내',
             'CHAPTER 01 리팩터링: 첫 번째 예시',
             'CHAPTER 02 리팩터링 원칙',
             'CHAPTER 03 코드에서 나는 악취',
@@ -104,8 +94,6 @@ export default function Dashboard() {
             'CHAPTER 10 조건부 로직 간소화',
             'CHAPTER 11 API 리팩터링',
             'CHAPTER 12 상속 다루기',
-            '부록 A 리팩터링 목록',
-            '부록 B 악취 제거 기법',
           ],
           plan: {
             targetDate: '2024-08-31',
@@ -222,33 +210,6 @@ export default function Dashboard() {
             <CardContent className="p-6 text-center">
               <Search className="w-8 h-8 mx-auto mb-2 text-primary group-hover:scale-110 transition-transform" />
               <h3 className="font-medium group-hover:text-primary transition-colors">책 검색</h3>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link to="/plan">
-          <Card className="hover:book-shadow transition-shadow cursor-pointer group">
-            <CardContent className="p-6 text-center">
-              <Calendar className="w-8 h-8 mx-auto mb-2 text-primary group-hover:scale-110 transition-transform" />
-              <h3 className="font-medium group-hover:text-primary transition-colors">학습 계획</h3>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link to="/notes">
-          <Card className="hover:book-shadow transition-shadow cursor-pointer group">
-            <CardContent className="p-6 text-center">
-              <Edit className="w-8 h-8 mx-auto mb-2 text-primary group-hover:scale-110 transition-transform" />
-              <h3 className="font-medium group-hover:text-primary transition-colors">학습 기록</h3>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link to="/settings">
-          <Card className="hover:book-shadow transition-shadow cursor-pointer group">
-            <CardContent className="p-6 text-center">
-              <Book className="w-8 h-8 mx-auto mb-2 text-primary group-hover:scale-110 transition-transform" />
-              <h3 className="font-medium group-hover:text-primary transition-colors">설정</h3>
             </CardContent>
           </Card>
         </Link>
