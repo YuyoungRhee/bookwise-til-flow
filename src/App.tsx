@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import BookDetail from './pages/BookDetail';
 import BookAddWizard from './pages/BookAddWizard';
+import SharedBookAddWizard from './pages/SharedBookAddWizard';
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ function AppRoutes() {
       <Route path="/note-history" element={<ProtectedRoute><NoteHistory /></ProtectedRoute>} />
       <Route path="/add-book/:title" element={<ProtectedRoute><BookAddWizard /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/shared-books/create" element={<ProtectedRoute><SharedBookAddWizard /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

@@ -184,7 +184,7 @@ export default function SharedBooks() {
               </DialogContent>
             </Dialog>
 
-            <Link to="/books/create">
+            <Link to="/shared-books/create">
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
                 새 공유 책 만들기
