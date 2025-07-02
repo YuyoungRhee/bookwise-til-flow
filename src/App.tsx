@@ -7,7 +7,7 @@ import Index from "./pages/Index";
 import BookSearch from "./pages/BookSearch";
 import BookList from "./pages/BookList";
 import StudyPlanning from "./pages/StudyPlanning";
-import NoteWriting from "./pages/NoteWriting";
+import NoteWritingNew from "./pages/NoteWritingNew";
 import NoteHistory from "./pages/NoteHistory";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -28,7 +28,7 @@ const App = () => (
           <Route path="/books" element={<BookList />} />
           <Route path="/books/:bookId" element={<BookDetail />} />
           <Route path="/books/:bookId/planning" element={<StudyPlanning />} />
-          <Route path="/note-writing/:bookId" element={<NoteWriting />} />
+          <Route path="/note-writing/:bookId" element={<NoteWritingNew />} />
           <Route path="/note-history" element={<NoteHistory />} />
           <Route path="/add-book/:title" element={<BookAddWizard />} />
           <Route path="/settings" element={<Settings />} />
