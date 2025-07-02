@@ -9,7 +9,148 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      book_members: {
+        Row: {
+          book_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_members_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "shared_books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shared_books: {
+        Row: {
+          author: string | null
+          chapters: string[] | null
+          created_at: string
+          created_by: string
+          id: string
+          invite_code: string
+          pages: number | null
+          parts: Json | null
+          title: string
+          total_chapters: number | null
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          chapters?: string[] | null
+          created_at?: string
+          created_by: string
+          id?: string
+          invite_code?: string
+          pages?: number | null
+          parts?: Json | null
+          title: string
+          total_chapters?: number | null
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          chapters?: string[] | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          invite_code?: string
+          pages?: number | null
+          parts?: Json | null
+          title?: string
+          total_chapters?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shared_chapter_notes: {
+        Row: {
+          book_id: string
+          chapter_number: number
+          chapter_title: string | null
+          content: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          chapter_number: number
+          chapter_title?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          chapter_number?: number
+          chapter_title?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_chapter_notes_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "shared_books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

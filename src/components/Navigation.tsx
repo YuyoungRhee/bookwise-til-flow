@@ -1,16 +1,24 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Book, Calendar, Search, Edit } from 'lucide-react';
+import { Book, Calendar, Search, Edit, Users, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
   { path: '/', label: '홈', icon: Book },
-  { path: '/books', label: '책 목록', icon: Search },
+  { path: '/shared-books', label: '공유 책', icon: Users },
+  { path: '/books', label: '개인 책', icon: Search },
   { path: '/note-history', label: '기록 히스토리', icon: Edit },
   { path: '/settings', label: '설정', icon: Calendar },
 ];
 
 export default function Navigation() {
   const location = useLocation();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <nav className="bg-card border-b border-border book-shadow">
@@ -27,7 +35,7 @@ export default function Navigation() {
             </Link>
           </div>
           
-          <div className="flex space-x-1">
+          <div className="flex items-center space-x-1">
             {navItems.map(({ path, label, icon: Icon }) => (
               <Link
                 key={path}
@@ -43,6 +51,18 @@ export default function Navigation() {
                 {label}
               </Link>
             ))}
+            
+            {user && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                로그아웃
+              </Button>
+            )}
           </div>
         </div>
       </div>
