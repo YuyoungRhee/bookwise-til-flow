@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import BookCard from '@/components/BookCard';
 import ChapterItem from '@/components/ChapterItem';
+import StudyCalendar from '@/components/StudyCalendar';
+import WeeklyMonthlyProgress from '@/components/WeeklyMonthlyProgress';
+import BookSummary from '@/components/BookSummary';
 import { Book, Calendar, Edit, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -228,7 +231,12 @@ export default function Dashboard() {
             <CardContent className="space-y-4">
               {currentBooks.length > 0 ? (
                 currentBooks.map((book, index) => (
-                  <BookCard key={index} {...book} />
+                  <div key={index} className="space-y-2">
+                    <BookCard {...book} />
+                    {book.progress === 100 && (
+                      <BookSummary bookTitle={book.title} />
+                    )}
+                  </div>
                 ))
               ) : (
                 <div className="text-center py-8">
@@ -255,10 +263,16 @@ export default function Dashboard() {
               ))}
             </CardContent>
           </Card>
+
+          {/* Study Calendar */}
+          <StudyCalendar />
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Weekly/Monthly Progress */}
+          <WeeklyMonthlyProgress />
+
           {/* Today's Progress */}
           <Card className="book-shadow">
             <CardHeader>
