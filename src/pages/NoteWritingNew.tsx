@@ -129,9 +129,11 @@ export default function NoteWritingNew() {
       const bookIndex = books.findIndex((b: any) => b.title === currentBook.title);
       
       if (bookIndex !== -1) {
-        if (!books[bookIndex].completedChapters) {
+        if (!Array.isArray(books[bookIndex].completedChapters)) {
           books[bookIndex].completedChapters = [];
         }
+        
+        console.log('completedChapters:', books[bookIndex].completedChapters, typeof books[bookIndex].completedChapters);
         
         if (!books[bookIndex].completedChapters.includes(parseInt(chapterIndex))) {
           books[bookIndex].completedChapters.push(parseInt(chapterIndex));
@@ -144,7 +146,7 @@ export default function NoteWritingNew() {
         window.dispatchEvent(new CustomEvent('add-book', { detail: { updated: true } }));
       }
 
-      navigate(`/books/${encodeURIComponent(currentBook.title)}`);
+      navigate(`/books/${encodeURIComponent(currentBook.title)}?tab=record`);
     } catch (error) {
       console.error('Error saving note:', error);
       alert('기록 저장 중 오류가 발생했습니다.');

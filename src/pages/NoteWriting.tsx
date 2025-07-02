@@ -2,8 +2,14 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { BookOpen, Save, Clock, CheckCircle } from 'lucide-react';
+import { 
+  BookOpen, 
+  Save, 
+  Clock, 
+  CheckCircle
+} from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import RichTextEditor from '@/components/RichTextEditor';
 
@@ -23,35 +29,6 @@ const refactoringChapters = [
   'CHAPTER 12 상속 다루기',
 ];
 
-const fontSizes = [
-  { value: '12px', label: '매우 작게' },
-  { value: '14px', label: '작게' },
-  { value: '16px', label: '보통' },
-  { value: '18px', label: '크게' },
-  { value: '20px', label: '매우 크게' },
-  { value: '24px', label: '제목 크기' },
-];
-
-const fontFamilies = [
-  { value: 'Arial, sans-serif', label: 'Arial' },
-  { value: 'Times New Roman, serif', label: 'Times New Roman' },
-  { value: 'Courier New, monospace', label: 'Courier New' },
-  { value: 'Georgia, serif', label: 'Georgia' },
-  { value: 'Verdana, sans-serif', label: 'Verdana' },
-  { value: 'Trebuchet MS, sans-serif', label: 'Trebuchet MS' },
-];
-
-const colors = [
-  { value: '#000000', label: '검정' },
-  { value: '#333333', label: '진한 회색' },
-  { value: '#666666', label: '회색' },
-  { value: '#0000FF', label: '파랑' },
-  { value: '#008000', label: '초록' },
-  { value: '#FF0000', label: '빨강' },
-  { value: '#FFA500', label: '주황' },
-  { value: '#800080', label: '보라' },
-];
-
 export default function NoteWriting() {
   const { bookId } = useParams();
   const [searchParams] = useSearchParams();
@@ -63,9 +40,6 @@ export default function NoteWriting() {
   const [noteContent, setNoteContent] = useState('');
   const [existingNote, setExistingNote] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showLinkDialog, setShowLinkDialog] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
-  const [linkText, setLinkText] = useState('');
 
   useEffect(() => {
     const loadData = () => {
@@ -124,27 +98,7 @@ export default function NoteWriting() {
     loadData();
   }, [bookId, chapterIndex]);
 
-  const execCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
-    editorRef.current?.focus();
-  };
 
-  const insertLink = () => {
-    if (linkUrl && linkText) {
-      const link = `<a href="${linkUrl}" target="_blank">${linkText}</a>`;
-      document.execCommand('insertHTML', false, link);
-      setShowLinkDialog(false);
-      setLinkUrl('');
-      setLinkText('');
-      editorRef.current?.focus();
-    }
-  };
-
-  const insertQuote = () => {
-    const quote = '<blockquote style="border-left: 4px solid #ccc; margin: 0; padding-left: 1rem; font-style: italic;">인용문을 입력하세요...</blockquote><br>';
-    document.execCommand('insertHTML', false, quote);
-    editorRef.current?.focus();
-  };
 
   const saveNote = () => {
     if (!currentBook || !currentChapter || chapterIndex === null) return;
@@ -183,7 +137,8 @@ export default function NoteWriting() {
       const bookIndex = books.findIndex((b: any) => b.title === currentBook.title);
       
       if (bookIndex !== -1) {
-        if (!books[bookIndex].completedChapters) {
+        // completedChapters가 배열이 아니면 빈 배열로 초기화
+        if (!Array.isArray(books[bookIndex].completedChapters)) {
           books[bookIndex].completedChapters = [];
         }
         
@@ -334,220 +289,6 @@ export default function NoteWriting() {
             <CardTitle>학습 기록</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* 툴바 */}
-            <div className="border rounded-lg p-2 bg-muted/20">
-              <div className="flex flex-wrap gap-2 items-center">
-                {/* 서체 */}
-                <Select onValueChange={(value) => execCommand('fontName', value)}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="서체" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fontFamilies.map((font) => (
-                      <SelectItem key={font.value} value={font.value}>
-                        {font.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* 글씨 크기 */}
-                <Select onValueChange={(value) => execCommand('fontSize', value)}>
-                  <SelectTrigger className="w-24">
-                    <SelectValue placeholder="크기" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fontSizes.map((size) => (
-                      <SelectItem key={size.value} value={size.value}>
-                        {size.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* 글씨 색상 */}
-                <Select onValueChange={(value) => execCommand('foreColor', value)}>
-                  <SelectTrigger className="w-20">
-                    <SelectValue placeholder="색상" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {colors.map((color) => (
-                      <SelectItem key={color.value} value={color.value}>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-4 h-4 rounded border" 
-                            style={{ backgroundColor: color.value }}
-                          />
-                          {color.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <div className="w-px h-6 bg-border" />
-
-                {/* 텍스트 스타일 */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => execCommand('bold')}
-                  className="h-8 w-8 p-0"
-                >
-                  <Bold className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => execCommand('italic')}
-                  className="h-8 w-8 p-0"
-                >
-                  <Italic className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => execCommand('underline')}
-                  className="h-8 w-8 p-0"
-                >
-                  <Underline className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => execCommand('strikeThrough')}
-                  className="h-8 w-8 p-0"
-                >
-                  <Strikethrough className="h-4 w-4" />
-                </Button>
-
-                <div className="w-px h-6 bg-border" />
-
-                {/* 정렬 */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => execCommand('justifyLeft')}
-                  className="h-8 w-8 p-0"
-                >
-                  <AlignLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => execCommand('justifyCenter')}
-                  className="h-8 w-8 p-0"
-                >
-                  <AlignCenter className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => execCommand('justifyRight')}
-                  className="h-8 w-8 p-0"
-                >
-                  <AlignRight className="h-4 w-4" />
-                </Button>
-
-                <div className="w-px h-6 bg-border" />
-
-                {/* 리스트 */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => execCommand('insertUnorderedList')}
-                  className="h-8 w-8 p-0"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => execCommand('insertOrderedList')}
-                  className="h-8 w-8 p-0"
-                >
-                  <ListOrdered className="h-4 w-4" />
-                </Button>
-
-                <div className="w-px h-6 bg-border" />
-
-                {/* 링크 */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowLinkDialog(true)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Link className="h-4 w-4" />
-                </Button>
-
-                {/* 인용문 */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={insertQuote}
-                  className="h-8 w-8 p-0"
-                >
-                  <Quote className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* 에디터 */}
-            <div
-              ref={editorRef}
-              contentEditable
-              className="min-h-[400px] p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              style={{ 
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '16px',
-                lineHeight: '1.6'
-              }}
-              placeholder="이 챕터에서 학습한 내용을 자유롭게 기록해보세요..."
-            />
-
-            {/* 링크 다이얼로그 */}
-            {showLinkDialog && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-background p-6 rounded-lg w-96 space-y-4">
-                  <h3 className="text-lg font-semibold">링크 추가</h3>
-                  <div className="space-y-2">
-                    <Label htmlFor="linkText">링크 텍스트</Label>
-                    <Input
-                      id="linkText"
-                      value={linkText}
-                      onChange={(e) => setLinkText(e.target.value)}
-                      placeholder="링크 텍스트를 입력하세요"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="linkUrl">URL</Label>
-                    <Input
-                      id="linkUrl"
-                      value={linkUrl}
-                      onChange={(e) => setLinkUrl(e.target.value)}
-                      placeholder="https://example.com"
-                    />
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setShowLinkDialog(false);
-                        setLinkUrl('');
-                        setLinkText('');
-                      }}
-                    >
-                      취소
-                    </Button>
-                    <Button onClick={insertLink}>
-                      추가
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             <RichTextEditor 
               value={noteContent}
               onChange={setNoteContent}

@@ -13,6 +13,8 @@ export default function BookDetail() {
   const [searchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const chapterParam = searchParams.get('chapter');
+  const tabValue = tabParam === 'record' ? 'records' : (tabParam || 'chapters');
+  const initialChapter = chapterParam ? Number(chapterParam) : undefined;
   const [books, setBooks] = useState(() => {
     const stored = window.localStorage.getItem('dashboardBooks');
     return stored ? JSON.parse(stored) : [];
@@ -20,7 +22,7 @@ export default function BookDetail() {
   const navigate = useNavigate();
   const [currentBook, setCurrentBook] = useState<any>(null);
   const [chapters, setChapters] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState(tabParam || 'chapters');
+  const [activeTab, setActiveTab] = useState(tabValue);
 
   useEffect(() => {
     const handler = () => {
@@ -37,12 +39,9 @@ export default function BookDetail() {
     setChapters(found?.chapters || []);
   }, [books, bookId]);
 
-  // URL 파라미터가 변경되면 탭 업데이트
   useEffect(() => {
-    if (tabParam) {
-      setActiveTab(tabParam);
-    }
-  }, [tabParam]);
+    setActiveTab(tabValue);
+  }, [tabValue]);
 
   const handleDelete = () => {
     if (!currentBook) return;
@@ -80,7 +79,7 @@ export default function BookDetail() {
           </TabsContent>
           <TabsContent value="records">
             <RecordManager 
-              initialChapter={chapterParam ? parseInt(chapterParam) - 1 : undefined}
+              initialChapter={initialChapter}
               bookTitle={currentBook?.title}
             />
           </TabsContent>

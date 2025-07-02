@@ -20,13 +20,6 @@ const chapters = [
   'CHAPTER 12 상속 다루기',
 ];
 
-// 1,2챕터는 기록이 이미 있음
-const initialRecords: Record<number, { content: string; date: string }> = {
-  0: { content: '1장 기록 예시: 리팩터링의 실제 적용을 봄.', date: '2024-07-01' },
-  1: { content: '2장 기록 예시: 원칙을 이해함.', date: '2024-07-02' },
-  // 2~11번 인덱스(3~12장)는 기록 없음
-};
-
 interface RecordManagerProps {
   initialChapter?: number;
   bookTitle?: string;
@@ -34,7 +27,7 @@ interface RecordManagerProps {
 
 export default function RecordManager({ initialChapter, bookTitle }: RecordManagerProps) {
   const [currentChapter, setCurrentChapter] = useState(initialChapter !== undefined ? initialChapter : 2);
-  const [records, setRecords] = useState(initialRecords);
+  const [records, setRecords] = useState<Record<number, { content: string; date: string }>>({});
   const navigate = useNavigate();
 
   // initialChapter가 변경되면 currentChapter 업데이트
@@ -43,6 +36,36 @@ export default function RecordManager({ initialChapter, bookTitle }: RecordManag
       setCurrentChapter(initialChapter);
     }
   }, [initialChapter]);
+
+  useEffect(() => {
+    // localStorage에서 chapterNotes를 읽어와서, 현재 책의 기록만 추출
+    const notes = JSON.parse(window.localStorage.getItem('chapterNotes') || '[]');
+    const filtered: Record<number, { content: string; date: string }> = {};
+    notes.forEach((note: any) => {
+      if (note.bookTitle === bookTitle) {
+        filtered[Number(note.chapterIndex)] = {
+          content: note.content,
+          date: note.updatedAt ? note.updatedAt.slice(0, 10) : '-'
+        };
+      }
+    });
+    // 리팩터링 2판 예시 데이터 (1,2장)
+    if (bookTitle === '리팩터링 2판') {
+      if (!filtered[0]) {
+        filtered[0] = {
+          content: '<p>1장 기록 예시: 리팩터링의 실제 적용을 봄.</p>',
+          date: '2024-07-01'
+        };
+      }
+      if (!filtered[1]) {
+        filtered[1] = {
+          content: '<p>2장 기록 예시: 원칙을 이해함.</p>',
+          date: '2024-07-02'
+        };
+      }
+    }
+    setRecords(filtered);
+  }, [bookTitle]);
 
   const goPrev = () => {
     setCurrentChapter((idx) => Math.max(0, idx - 1));
@@ -111,10 +134,10 @@ export default function RecordManager({ initialChapter, bookTitle }: RecordManag
             {hasRecord ? (
               <div>
                 <div className="mb-2 text-muted-foreground text-sm">기록일: {record.date}</div>
-                <Textarea 
-                  value={record.content} 
-                  readOnly 
-                  className="w-full min-h-[200px] focus:ring-0 focus:border-input focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none" 
+                <div
+                  className="w-full min-h-[200px] p-3 border rounded bg-background"
+                  style={{ whiteSpace: 'pre-line' }}
+                  dangerouslySetInnerHTML={{ __html: record.content }}
                 />
               </div>
             ) : (
@@ -138,7 +161,6 @@ export default function RecordManager({ initialChapter, bookTitle }: RecordManag
             >
               <span className="w-56">{ch}</span>
               <span className="w-32">{records[idx]?.date || '-'}</span>
-              <span className="w-64 truncate">{records[idx]?.content || '-'}</span>
             </div>
           ))}
         </CardContent>
