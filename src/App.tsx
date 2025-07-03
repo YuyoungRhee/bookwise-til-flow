@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import BookDetail from './pages/BookDetail';
 import BookAddWizard from './pages/BookAddWizard';
 import SharedBookAddWizard from './pages/SharedBookAddWizard';
+import SharedBookDetail from './pages/SharedBookDetail';
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ function AppRoutes() {
       <Route path="/add-book/:title" element={<ProtectedRoute><BookAddWizard /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/shared-books/create" element={<ProtectedRoute><SharedBookAddWizard /></ProtectedRoute>} />
+      <Route path="/shared-books/:bookId" element={<ProtectedRoute><SharedBookDetail /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

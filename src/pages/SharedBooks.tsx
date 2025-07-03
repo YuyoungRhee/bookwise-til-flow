@@ -318,15 +318,10 @@ export default function SharedBooks() {
                     </Badge>
                   </div>
 
-                  <div className="flex gap-2 pt-2">
-                    <Link to={`/shared-books/${book.id}`} className="flex-1">
-                      <Button variant="outline" className="w-full">
-                        학습하기
-                      </Button>
-                    </Link>
-                    <Link to={`/shared-books/${book.id}/notes`} className="flex-1">
+                  <div className="pt-2">
+                    <Link to={`/shared-books/${book.id}`} className="w-full">
                       <Button className="w-full">
-                        기록 보기
+                        책 보기
                       </Button>
                     </Link>
                   </div>
