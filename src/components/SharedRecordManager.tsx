@@ -65,18 +65,13 @@ export default function SharedRecordManager({ initialChapter, bookId, bookTitle 
   }, [bookId, user]);
 
   const fetchNotes = async () => {
-    if (!bookId || !user) return;
-
+    setLoading(true);
+    
     try {
+      // First, get all notes for this book
       const { data: notesData, error } = await supabase
         .from('shared_chapter_notes')
-        .select(`
-          *,
-          profiles:user_id (
-            display_name,
-            email
-          )
-        `)
+        .select('*')
         .eq('book_id', bookId)
         .order('chapter_number', { ascending: true });
 
@@ -90,10 +85,30 @@ export default function SharedRecordManager({ initialChapter, bookId, bookTitle 
         return;
       }
 
+      // Get unique user IDs from notes
+      const userIds = [...new Set((notesData || []).map(note => note.user_id))];
+      
+      // Fetch user profiles separately
+      let userProfiles: any = {};
+      if (userIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, display_name, email')
+          .in('user_id', userIds);
+
+        if (!profilesError && profilesData) {
+          userProfiles = profilesData.reduce((acc, profile) => {
+            acc[profile.user_id] = profile;
+            return acc;
+          }, {} as any);
+        }
+      }
+
+      // Combine notes with user information
       const notesWithAuthor = (notesData || []).map(note => ({
         ...note,
-        author_name: (note.profiles as any)?.display_name,
-        author_email: (note.profiles as any)?.email
+        author_name: userProfiles[note.user_id]?.display_name || 'Unknown User',
+        author_email: userProfiles[note.user_id]?.email || ''
       }));
 
       setNotes(notesWithAuthor);
@@ -277,10 +292,10 @@ export default function SharedRecordManager({ initialChapter, bookId, bookTitle 
                 <Card key={note.id} className="relative">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">
-                          {note.author_name || note.author_email || '익명'}
-                        </Badge>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground">
+                          작성자: {note.author_name || note.author_email || '익명'}
+                        </span>
                         <span className="text-sm text-muted-foreground">
                           {new Date(note.updated_at).toLocaleDateString()}
                         </span>
@@ -306,9 +321,10 @@ export default function SharedRecordManager({ initialChapter, bookId, bookTitle 
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="whitespace-pre-wrap text-sm">
-                      {note.content}
-                    </div>
+                    <div 
+                      className="text-sm ql-editor"
+                      dangerouslySetInnerHTML={{ __html: note.content }}
+                    />
                   </CardContent>
                 </Card>
               ))

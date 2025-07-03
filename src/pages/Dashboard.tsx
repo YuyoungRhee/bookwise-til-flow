@@ -207,15 +207,35 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Link to="/search">
-          <Card className="hover:book-shadow transition-shadow cursor-pointer group">
-            <CardContent className="p-6 text-center">
-              <Search className="w-8 h-8 mx-auto mb-2 text-primary group-hover:scale-110 transition-transform" />
-              <h3 className="font-medium group-hover:text-primary transition-colors">책 검색</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <Card className="book-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="w-5 h-5" />
+                책 추가
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Link to="/search">
+                  <Card className="hover:book-shadow transition-shadow cursor-pointer group h-full border-primary bg-transparent">
+                    <CardContent className="p-6 text-center">
+                      <h3 className="font-medium text-primary">개인 책</h3>
+                    </CardContent>
+                  </Card>
+                </Link>
+                <Link to="/shared-books/create">
+                  <Card className="hover:book-shadow transition-shadow cursor-pointer group h-full border-primary bg-transparent">
+                    <CardContent className="p-6 text-center">
+                      <h3 className="font-medium text-primary">공유 책</h3>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </div>
             </CardContent>
           </Card>
-        </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -306,7 +326,7 @@ export default function Dashboard() {
                   <p className="text-xs text-muted-foreground">{note.date}</p>
                 </div>
               ))}
-              <Link to="/notes">
+              <Link to="/note-history">
                 <Button variant="outline" size="sm" className="w-full">
                   모든 기록 보기
                 </Button>

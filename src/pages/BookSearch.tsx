@@ -156,17 +156,17 @@ export default function BookSearch() {
         </Card>
       )}
 
-      {/* API Key Notice */}
-      <Card className="book-shadow border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800">
+      {/* Test Data Notice */}
+      <Card className="book-shadow border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <div className="w-2 h-2 rounded-full bg-amber-500 mt-2"></div>
+            <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
             <div>
-              <p className="font-medium text-amber-800 dark:text-amber-200">
-                실제 검색을 위해 알라딘 API 키가 필요합니다
+              <p className="font-medium text-blue-800 dark:text-blue-200">
+                테스트용 책 데이터 안내
               </p>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                설정 페이지에서 API 키를 등록하면 실제 책 검색이 가능합니다
+              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                이것이 자바다, 클린 코드, 자바스크립트 완벽 가이드
               </p>
             </div>
           </div>

@@ -71,33 +71,110 @@ export default function SharedBookDetail() {
         return;
       }
 
-      // 2. 참여 멤버 수 및 정보 가져오기
-      const { data: members, error: membersError } = await supabase
-        .from('book_members')
-        .select(`
-          user_id,
-          profiles:user_id (
-            display_name,
-            email
-          )
-        `)
-        .eq('book_id', bookId);
+      // 2. 참여 멤버 수 가져오기 (간단한 방법)
+      let memberCount = 0;
+      let members: any[] = [];
 
-      if (membersError) {
-        console.error('Error fetching members:', membersError);
+      try {
+        console.log('Fetching members for book:', bookId);
+        
+        // 먼저 멤버 수만 가져오기
+        const { count, error: countError } = await supabase
+          .from('book_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('book_id', bookId);
+
+        console.log('Member count result:', { count, countError });
+
+        if (!countError) {
+          memberCount = count || 0;
+        }
+
+        // 멤버 정보 가져오기 (선택적)
+        const { data: membersData, error: membersError } = await supabase
+          .from('book_members')
+          .select(`
+            user_id,
+            profiles:user_id (
+              display_name,
+              email
+            )
+          `)
+          .eq('book_id', bookId);
+
+        console.log('Members data result:', { membersData, membersError });
+
+        if (!membersError && membersData) {
+          members = membersData.map(m => ({
+            id: m.user_id,
+            display_name: (m.profiles as any)?.display_name,
+            email: (m.profiles as any)?.email
+          }));
+        }
+
+        // RLS 정책 문제일 경우를 대비한 대안 방법
+        if (membersError || !membersData || membersData.length === 0) {
+          console.log('Trying alternative method to get members...');
+          
+          // 사용자 ID만 먼저 가져오기
+          const { data: userIds, error: userIdsError } = await supabase
+            .from('book_members')
+            .select('user_id')
+            .eq('book_id', bookId);
+
+          console.log('User IDs result:', { userIds, userIdsError });
+
+          if (!userIdsError && userIds && userIds.length > 0) {
+            // 각 사용자의 프로필 정보 개별 조회
+            const userProfiles = await Promise.all(
+              userIds.map(async (member) => {
+                try {
+                  const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('display_name, email')
+                    .eq('user_id', member.user_id)
+                    .single();
+
+                  if (!profileError && profile) {
+                    return {
+                      id: member.user_id,
+                      display_name: profile.display_name,
+                      email: profile.email
+                    };
+                  }
+                  return {
+                    id: member.user_id,
+                    display_name: 'Unknown User',
+                    email: ''
+                  };
+                } catch (error) {
+                  console.error('Error fetching profile for user:', member.user_id, error);
+                  return {
+                    id: member.user_id,
+                    display_name: 'Unknown User',
+                    email: ''
+                  };
+                }
+              })
+            );
+
+            members = userProfiles.filter(Boolean);
+            console.log('Alternative members result:', members);
+          }
+        }
+      } catch (memberError) {
+        console.error('Error fetching members:', memberError);
+        // 멤버 정보 가져오기 실패해도 책 정보는 표시
       }
 
       // 책 정보에 멤버 정보 추가
       const bookWithMembers: SharedBook = {
         ...book,
-        member_count: members?.length || 0,
-        members: members?.map(m => ({
-          id: m.user_id,
-          display_name: (m.profiles as any)?.display_name,
-          email: (m.profiles as any)?.email
-        })) || []
+        member_count: memberCount,
+        members: members
       };
 
+      console.log('Book with members:', bookWithMembers);
       setCurrentBook(bookWithMembers);
     } catch (error) {
       console.error('Error in fetchBookDetails:', error);

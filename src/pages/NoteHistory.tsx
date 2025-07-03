@@ -6,9 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
-import { Search, Calendar, Book, FileText, Edit } from 'lucide-react';
+import { Search, Calendar, Book, FileText, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navigation from '@/components/Navigation';
-import { format, isToday, isYesterday, isSameDay } from 'date-fns';
+import { format, isToday, isYesterday, isSameDay, addDays, subDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 export default function NoteHistory() {
@@ -17,6 +17,7 @@ export default function NoteHistory() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBook, setSelectedBook] = useState<string>('all');
   const [selectedDate, setSelectedDate] = useState<string>('all');
+  const [currentDate, setCurrentDate] = useState(new Date());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,6 +43,15 @@ export default function NoteHistory() {
     });
     
     return groups;
+  };
+
+  // 현재 선택된 날짜의 기록만 가져오기
+  const getCurrentDateNotes = () => {
+    const currentDateStr = format(currentDate, 'yyyy-MM-dd');
+    return notes.filter(note => {
+      const noteDate = format(new Date(note.updatedAt), 'yyyy-MM-dd');
+      return noteDate === currentDateStr;
+    });
   };
 
   // 책별 그룹화
@@ -97,6 +107,28 @@ export default function NoteHistory() {
 
   // 오늘 작성된 TIL
   const todayNotes = notes.filter(note => isToday(new Date(note.updatedAt)));
+
+  // 선택된 날짜의 TIL
+  const getCurrentDateTIL = () => {
+    const currentDateStr = format(currentDate, 'yyyy-MM-dd');
+    return notes.filter(note => {
+      const noteDate = format(new Date(note.updatedAt), 'yyyy-MM-dd');
+      return noteDate === currentDateStr;
+    });
+  };
+
+  // 날짜 네비게이션 함수들
+  const goToPreviousDay = () => {
+    setCurrentDate(prev => subDays(prev, 1));
+  };
+
+  const goToNextDay = () => {
+    setCurrentDate(prev => addDays(prev, 1));
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -176,43 +208,102 @@ export default function NoteHistory() {
 
           {/* 날짜별 보기 */}
           <TabsContent value="date">
-            {Object.entries(groupNotesByDate(filteredNotes)).map(([date, dateNotes]) => (
-              <Card key={date} className="mb-4">
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {formatRelativeDate(new Date(date))}
-                    <Badge variant="outline" className="ml-2">
-                      {dateNotes.length}개
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {dateNotes.map((note, index) => (
-                    <div key={index} className="border rounded-lg p-4 space-y-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-semibold">{note.bookTitle}</h4>
-                          <p className="text-sm text-muted-foreground">{note.chapterTitle}</p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditNote(note)}
-                          className="gap-1"
-                        >
-                          <Edit className="w-3 h-3" />
-                          수정
-                        </Button>
+            <Card className="mb-4">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToPreviousDay}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <CardTitle className="text-lg">
+                      {format(currentDate, 'yyyy년 M월 d일 (eee)', { locale: ko })}
+                      {isToday(currentDate) && (
+                        <Badge variant="secondary" className="ml-2">
+                          오늘
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToNextDay}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToToday}
+                    disabled={isToday(currentDate)}
+                  >
+                    오늘로
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const currentDateNotes = getCurrentDateNotes().filter(note => {
+                    const matchesSearch = note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                         note.chapterTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                         note.bookTitle.toLowerCase().includes(searchTerm.toLowerCase());
+                    
+                    const matchesBook = selectedBook === 'all' || note.bookTitle === selectedBook;
+                    
+                    return matchesSearch && matchesBook;
+                  });
+
+                  if (currentDateNotes.length === 0) {
+                    return (
+                      <div className="text-center py-8">
+                        <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">
+                          {format(currentDate, 'yyyy년 M월 d일', { locale: ko })}에 작성된 기록이 없습니다
+                        </h3>
+                        <p className="text-muted-foreground">
+                          다른 날짜를 선택하거나 새로운 기록을 작성해보세요
+                        </p>
                       </div>
-                      <p className="text-sm line-clamp-3">{note.content}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(note.updatedAt), 'HH:mm')}
-                      </p>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {currentDateNotes.map((note, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold">{note.bookTitle}</h4>
+                              <p className="text-sm text-muted-foreground">{note.chapterTitle}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditNote(note)}
+                              className="gap-1"
+                            >
+                              <Edit className="w-3 h-3" />
+                              수정
+                            </Button>
+                          </div>
+                          <div 
+                            className="text-sm line-clamp-3 ql-editor"
+                            dangerouslySetInnerHTML={{ __html: note.content }}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(note.updatedAt), 'HH:mm')}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            ))}
+                  );
+                })()}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* 책별 보기 */}
@@ -247,7 +338,10 @@ export default function NoteHistory() {
                           수정
                         </Button>
                       </div>
-                      <p className="text-sm line-clamp-3">{note.content}</p>
+                      <div 
+                        className="text-sm line-clamp-3 ql-editor"
+                        dangerouslySetInnerHTML={{ __html: note.content }}
+                      />
                     </div>
                   ))}
                 </CardContent>
@@ -255,56 +349,105 @@ export default function NoteHistory() {
             ))}
           </TabsContent>
 
-          {/* 오늘의 TIL */}
+          {/* 선택된 날짜의 TIL */}
           <TabsContent value="til">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  오늘의 TIL ({format(new Date(), 'MM월 dd일', { locale: ko })})
-                  <Badge variant="outline">
-                    {todayNotes.length}개
-                  </Badge>
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToPreviousDay}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      {format(currentDate, 'yyyy년 M월 d일', { locale: ko })}의 TIL
+                      {isToday(currentDate) && (
+                        <Badge variant="secondary" className="ml-2">
+                          오늘
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToNextDay}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={goToToday}
+                    disabled={isToday(currentDate)}
+                  >
+                    오늘로
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                {todayNotes.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">오늘 작성된 기록이 없습니다</h3>
-                    <p className="text-muted-foreground">
-                      오늘 학습한 내용을 기록해보세요
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {todayNotes.map((note, index) => (
-                      <div key={index} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold text-lg">{note.bookTitle}</h4>
-                            <p className="text-muted-foreground">{note.chapterTitle}</p>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditNote(note)}
-                            className="gap-1"
-                          >
-                            <Edit className="w-3 h-3" />
-                            수정
-                          </Button>
-                        </div>
-                        <div className="prose prose-sm max-w-none">
-                          <div className="whitespace-pre-wrap">{note.content}</div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(note.updatedAt), 'HH:mm')}에 작성
+                {(() => {
+                  const currentDateTIL = getCurrentDateTIL().filter(note => {
+                    const matchesSearch = note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                         note.chapterTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                         note.bookTitle.toLowerCase().includes(searchTerm.toLowerCase());
+                    
+                    const matchesBook = selectedBook === 'all' || note.bookTitle === selectedBook;
+                    
+                    return matchesSearch && matchesBook;
+                  });
+
+                  if (currentDateTIL.length === 0) {
+                    return (
+                      <div className="text-center py-8">
+                        <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">
+                          {format(currentDate, 'yyyy년 M월 d일', { locale: ko })}에 작성된 기록이 없습니다
+                        </h3>
+                        <p className="text-muted-foreground">
+                          다른 날짜를 선택하거나 새로운 기록을 작성해보세요
                         </p>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-6">
+                      {currentDateTIL.map((note, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-lg">{note.bookTitle}</h4>
+                              <p className="text-muted-foreground">{note.chapterTitle}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditNote(note)}
+                              className="gap-1"
+                            >
+                              <Edit className="w-3 h-3" />
+                              수정
+                            </Button>
+                          </div>
+                          <div className="prose prose-sm max-w-none">
+                            <div 
+                              className="ql-editor"
+                              dangerouslySetInnerHTML={{ __html: note.content }}
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(note.updatedAt), 'HH:mm')}에 작성
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           </TabsContent>

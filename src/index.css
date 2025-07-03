@@ -9,6 +9,22 @@
   line-height: 1.7;
 }
 
+/* 기록 표시용 ql-editor 스타일 */
+.ql-editor:not(.ql-container .ql-editor) {
+  min-height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+/* line-clamp와 함께 사용할 때의 스타일 */
+.line-clamp-3.ql-editor {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* Quill size 옵션 스타일 */
 .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="small"],
 .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="small"] {
