@@ -1,8 +1,11 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import ChapterSetSelector from '@/components/ChapterSetSelector';
+import { useChapterSets, BookInfo } from '@/hooks/useChapterSets';
+import { useAuth } from '@/contexts/AuthContext';
 
 const JAVA_PARTS = [
   {
@@ -66,6 +69,9 @@ export default function BookAddWizard() {
   const { title } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { findOrCreateBookInfo } = useChapterSets();
+  
   const book = location.state?.book || {
     title: decodeURIComponent(title || ''),
     author: '',
@@ -75,40 +81,69 @@ export default function BookAddWizard() {
     isbn: '',
     description: '',
   };
+  
   const [step, setStep] = useState(1);
-  const [parts, setParts] = useState(JAVA_PARTS);
+  const [bookInfo, setBookInfo] = useState<BookInfo | null>(null);
+  const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
   const [pages, setPages] = useState(1112);
   const [plan, setPlan] = useState({ targetDate: '', dailyChapters: '', dailyPages: '', expectedEnd: '', autoDaily: null as null | { chapters: number; pages: number } });
   const [inputMode, setInputMode] = useState<'date' | 'chapter' | 'page' | null>(null);
 
+  useEffect(() => {
+    // 1단계에서 book_info 생성
+    if (step === 1) {
+      initializeBookInfo();
+    }
+  }, []);
+
+  const initializeBookInfo = async () => {
+    const info = await findOrCreateBookInfo({
+      isbn: book.isbn,
+      title: book.title,
+      author: book.author,
+      publisher: book.publisher,
+    });
+    setBookInfo(info);
+  };
+
   // 1단계: 챕터 입력/확인
-  const renderChapters = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle>챕터 입력/확인</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>책 제목: <b>{book.title}</b></div>
-        <div>총 페이지: <Input type="number" value={pages} onChange={e => setPages(Number(e.target.value))} className="w-32 inline-block ml-2" /> 쪽</div>
-        <div className="space-y-2 mt-2">
-          {parts.map((part, i) => (
-            <div key={i} className="mb-2">
-              <b>{part.name}</b>
-              <ul className="ml-4 list-disc">
-                {part.chapters.map((ch, j) => (
-                  <li key={j}>{ch}</li>
-                ))}
-              </ul>
+  const renderChapters = () => {
+    if (!bookInfo) {
+      return (
+        <Card>
+          <CardContent className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p>책 정보를 준비하고 있습니다...</p>
             </div>
-          ))}
-        </div>
-        <Button className="mt-4" onClick={() => setStep(2)}>다음 (학습 계획 수립)</Button>
-      </CardContent>
-    </Card>
-  );
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>책 정보</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>책 제목: <b>{book.title}</b></div>
+            <div>총 페이지: <Input type="number" value={pages} onChange={e => setPages(Number(e.target.value))} className="w-32 inline-block ml-2" /> 쪽</div>
+          </CardContent>
+        </Card>
+        
+        <ChapterSetSelector
+          bookInfo={bookInfo}
+          onChapterSelected={setSelectedChapters}
+          onNext={() => setStep(2)}
+        />
+      </div>
+    );
+  };
 
   // 2단계: 학습 계획 수립
-  const totalChapters = parts.reduce((sum, p) => sum + p.chapters.length, 0);
+  const totalChapters = selectedChapters.length;
   const handleTargetDate = (date: string) => {
     setInputMode('date');
     setPlan(p => {
@@ -208,7 +243,7 @@ export default function BookAddWizard() {
     const newBook = {
       ...book,
       pages,
-      parts,
+      chapters: selectedChapters,
       plan,
       totalChapters,
       completedChapters: 0,

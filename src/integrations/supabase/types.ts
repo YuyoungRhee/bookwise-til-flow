@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      book_info: {
+        Row: {
+          author: string | null
+          created_at: string
+          id: string
+          isbn: string | null
+          publisher: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          id?: string
+          isbn?: string | null
+          publisher?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          id?: string
+          isbn?: string | null
+          publisher?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       book_members: {
         Row: {
           book_id: string
@@ -34,6 +64,47 @@ export type Database = {
             columns: ["book_id"]
             isOneToOne: false
             referencedRelation: "shared_books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chapter_set: {
+        Row: {
+          book_info_id: string
+          chapter_list_json: Json
+          created_at: string
+          id: string
+          normalized_hash: string
+          original_input: string
+          selection_count: number
+          updated_at: string
+        }
+        Insert: {
+          book_info_id: string
+          chapter_list_json: Json
+          created_at?: string
+          id?: string
+          normalized_hash: string
+          original_input: string
+          selection_count?: number
+          updated_at?: string
+        }
+        Update: {
+          book_info_id?: string
+          chapter_list_json?: Json
+          created_at?: string
+          id?: string
+          normalized_hash?: string
+          original_input?: string
+          selection_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_set_book_info_id_fkey"
+            columns: ["book_info_id"]
+            isOneToOne: false
+            referencedRelation: "book_info"
             referencedColumns: ["id"]
           },
         ]
@@ -147,6 +218,35 @@ export type Database = {
             columns: ["book_id"]
             isOneToOne: false
             referencedRelation: "shared_books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_chapter_log: {
+        Row: {
+          chapter_set_id: string
+          id: string
+          selected_at: string
+          user_id: string
+        }
+        Insert: {
+          chapter_set_id: string
+          id?: string
+          selected_at?: string
+          user_id: string
+        }
+        Update: {
+          chapter_set_id?: string
+          id?: string
+          selected_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_chapter_log_chapter_set_id_fkey"
+            columns: ["chapter_set_id"]
+            isOneToOne: false
+            referencedRelation: "chapter_set"
             referencedColumns: ["id"]
           },
         ]
