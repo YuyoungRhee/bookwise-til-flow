@@ -27,6 +27,7 @@ export default function SharedBooks() {
   const [loading, setLoading] = useState(true);
   const [inviteCode, setInviteCode] = useState('');
   const [joinLoading, setJoinLoading] = useState(false);
+  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -37,24 +38,68 @@ export default function SharedBooks() {
   const fetchSharedBooks = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('shared_books')
-      .select(`
-        *,
-        book_members!inner(user_id)
-      `)
-      .eq('book_members.user_id', user.id);
+    try {
+      console.log('Fetching shared books for user:', user.id);
+      
+      // 1. Get books created by the user
+      const { data: createdBooks, error: createdError } = await supabase
+        .from('shared_books')
+        .select('*')
+        .eq('created_by', user.id);
 
-    if (error) {
-      console.error('Error fetching shared books:', error);
+      console.log('Created books:', createdBooks);
+      console.log('Created books error:', createdError);
+
+      // 2. Get user's memberships
+      const { data: memberships, error: membershipError } = await supabase
+        .from('book_members')
+        .select('book_id')
+        .eq('user_id', user.id);
+
+      console.log('Memberships:', memberships);
+      console.log('Memberships error:', membershipError);
+
+      let memberBooks: any[] = [];
+      if (memberships && memberships.length > 0) {
+        // 3. Get books where user is a member (but not creator)
+        const bookIds = memberships.map(m => m.book_id);
+        const { data: memberBooksData, error: memberBooksError } = await supabase
+          .from('shared_books')
+          .select('*')
+          .in('id', bookIds)
+          .neq('created_by', user.id); // Exclude books created by user
+
+        console.log('Member books data:', memberBooksData);
+        console.log('Member books error:', memberBooksError);
+        memberBooks = memberBooksData || [];
+      }
+
+      // 4. Combine and deduplicate books
+      const allBooks = [...(createdBooks || []), ...memberBooks];
+      const uniqueBooks = allBooks.filter((book, index, self) => 
+        index === self.findIndex(b => b.id === book.id)
+      );
+
+      console.log('Final unique books:', uniqueBooks);
+      setBooks(uniqueBooks);
+
+      if (createdError || membershipError) {
+        console.error('Error fetching books:', { createdError, membershipError });
+        toast({
+          title: "오류",
+          description: "공유 책 목록을 불러오는데 실패했습니다.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error in fetchSharedBooks:', error);
       toast({
         title: "오류",
-        description: "공유 책 목록을 불러오는데 실패했습니다.",
+        description: "공유 책 목록을 불러오는 중 오류가 발생했습니다.",
         variant: "destructive"
       });
-    } else {
-      setBooks(data || []);
     }
+    
     setLoading(false);
   };
 
@@ -63,14 +108,43 @@ export default function SharedBooks() {
     setJoinLoading(true);
 
     try {
+      console.log('Attempting to join book with code:', code);
+      console.log('Current user:', user.id);
+      
       // Find book by invite code
       const { data: book, error: bookError } = await supabase
         .from('shared_books')
-        .select('id')
+        .select('id, title, invite_code')
         .eq('invite_code', code)
         .single();
 
-      if (bookError || !book) {
+      console.log('Book lookup result:', { book, bookError });
+
+      if (bookError) {
+        console.error('Book lookup error:', bookError);
+        if (bookError.code === 'PGRST116') {
+          toast({
+            title: "초대 코드 오류",
+            description: "유효하지 않은 초대 코드입니다. (코드를 찾을 수 없음)",
+            variant: "destructive"
+          });
+        } else if (bookError.code === '42501') {
+          toast({
+            title: "권한 오류",
+            description: "RLS 정책으로 인해 책을 조회할 수 없습니다.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "초대 코드 오류",
+            description: `유효하지 않은 초대 코드입니다. (${bookError.message})`,
+            variant: "destructive"
+          });
+        }
+        return;
+      }
+
+      if (!book) {
         toast({
           title: "초대 코드 오류",
           description: "유효하지 않은 초대 코드입니다.",
@@ -78,6 +152,8 @@ export default function SharedBooks() {
         });
         return;
       }
+
+      console.log('Found book:', book);
 
       // Join the book
       const { error: joinError } = await supabase
@@ -87,6 +163,8 @@ export default function SharedBooks() {
           user_id: user.id
         }]);
 
+      console.log('Join result:', { joinError });
+
       if (joinError) {
         if (joinError.code === '23505') { // unique constraint violation
           toast({
@@ -95,18 +173,20 @@ export default function SharedBooks() {
             variant: "destructive"
           });
         } else {
+          console.error('Join error:', joinError);
           toast({
             title: "참여 실패",
-            description: "책 참여에 실패했습니다.",
+            description: `책 참여에 실패했습니다. (${joinError.message})`,
             variant: "destructive"
           });
         }
       } else {
         toast({
           title: "참여 완료",
-          description: "책에 성공적으로 참여했습니다!"
+          description: `"${book.title}"에 성공적으로 참여했습니다!`
         });
         setInviteCode('');
+        setIsJoinDialogOpen(false);
         fetchSharedBooks();
       }
     } catch (error) {
@@ -152,7 +232,7 @@ export default function SharedBooks() {
           </div>
           
           <div className="flex gap-2">
-            <Dialog>
+            <Dialog open={isJoinDialogOpen} onOpenChange={setIsJoinDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <LinkIcon className="w-4 h-4 mr-2" />

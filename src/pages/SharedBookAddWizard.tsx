@@ -203,9 +203,86 @@ export default function SharedBookAddWizard() {
 
   // 5단계: 공유책 생성 완료
   const handleRegister = async () => {
-    // 실제로는 supabase에 공유책 생성 + 멤버 초대 로직 필요
-    toast({ title: '공유책 생성 완료', description: `${selectedBook.title} 공유책이 생성되었습니다!` });
-    navigate('/shared-books');
+    if (!user) {
+      toast({ 
+        title: '오류', 
+        description: '로그인이 필요합니다.', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    try {
+      console.log('Creating shared book for user:', user.id);
+      
+      // 1. 공유책 생성
+      const { data: book, error: bookError } = await supabase
+        .from('shared_books')
+        .insert([{
+          title: selectedBook.title,
+          author: selectedBook.author,
+          total_chapters: totalChapters,
+          pages: pages,
+          chapters: parts.flatMap(part => part.chapters),
+          parts: parts,
+          created_by: user.id
+        }])
+        .select()
+        .single();
+
+      console.log('Book creation result:', { book, bookError });
+
+      if (bookError) {
+        console.error('Error creating shared book:', bookError);
+        toast({ 
+          title: '오류', 
+          description: '공유책 생성에 실패했습니다.', 
+          variant: 'destructive' 
+        });
+        return;
+      }
+
+      // 2. 생성자를 멤버로 추가 (간단한 방식)
+      try {
+        const { error: memberError } = await supabase
+          .from('book_members')
+          .insert([{
+            book_id: book.id,
+            user_id: user.id
+          }]);
+
+        console.log('Member addition result:', { memberError });
+
+        if (memberError) {
+          console.error('Error adding creator as member:', memberError);
+          // 멤버 추가 실패해도 책은 생성되었으므로 계속 진행
+          toast({ 
+            title: '경고', 
+            description: '책은 생성되었지만 멤버 추가에 실패했습니다.', 
+            variant: 'destructive' 
+          });
+        }
+      } catch (memberError) {
+        console.error('Exception adding member:', memberError);
+        // 멤버 추가 실패해도 책은 생성되었으므로 계속 진행
+      }
+
+      // 3. 성공 메시지
+      toast({ 
+        title: '공유책 생성 완료', 
+        description: `${selectedBook.title} 공유책이 생성되었습니다! 초대 코드: ${book.invite_code}` 
+      });
+      
+      // 4. 공유책 목록으로 이동
+      navigate('/shared-books');
+    } catch (error) {
+      console.error('Error in handleRegister:', error);
+      toast({ 
+        title: '오류', 
+        description: '공유책 생성 중 오류가 발생했습니다.', 
+        variant: 'destructive' 
+      });
+    }
   };
   const renderComplete = () => (
     <Card>
