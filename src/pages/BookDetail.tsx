@@ -68,7 +68,7 @@ export default function BookDetail() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="chapters">챕터 관리</TabsTrigger>
-            <TabsTrigger value="plan">학습 계획</TabsTrigger>
+            <TabsTrigger value="plan">학습 계획 / 진도 관리</TabsTrigger>
             <TabsTrigger value="records">기록/히스토리</TabsTrigger>
           </TabsList>
           <TabsContent value="chapters">

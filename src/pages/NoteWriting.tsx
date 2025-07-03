@@ -219,104 +219,106 @@ export default function NoteWriting() {
     currentBook.completedChapters.includes(parseInt(chapterIndex || '0'));
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <Navigation />
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold study-text">챕터 기록 작성</h1>
-            <p className="text-muted-foreground mt-2">
-              학습한 내용을 자유롭게 기록해보세요
-            </p>
-          </div>
-          {isCompleted && (
-            <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-              <CheckCircle className="w-3 h-3 mr-1" />
-              완료됨
-            </Badge>
-          )}
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
-              챕터 정보
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <span className="text-sm text-muted-foreground">책 제목</span>
-                <p className="font-medium">{currentBook.title}</p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">저자</span>
-                <p className="font-medium">{currentBook.author || '정보 없음'}</p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">챕터</span>
-                <p className="font-medium">{currentChapter.title}</p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">페이지</span>
-                <p className="font-medium">
-                  {currentChapter.startPage || 1}p - {currentChapter.endPage || 50}p
-                </p>
-              </div>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-6xl mx-auto p-6 space-y-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold study-text">챕터 기록 작성</h1>
+              <p className="text-muted-foreground mt-2">
+                학습한 내용을 자유롭게 기록해보세요
+              </p>
             </div>
-            
-            {existingNote && (
-              <div className="pt-4 border-t">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  <span>
-                    작성일: {formatDate(existingNote.createdAt)}
-                  </span>
-                  {existingNote.updatedAt !== existingNote.createdAt && (
-                    <span>
-                      • 수정일: {formatDate(existingNote.updatedAt)}
-                    </span>
-                  )}
+            {isCompleted && (
+              <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                완료됨
+              </Badge>
+            )}
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5" />
+                챕터 정보
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm text-muted-foreground">책 제목</span>
+                  <p className="font-medium">{currentBook.title}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">저자</span>
+                  <p className="font-medium">{currentBook.author || '정보 없음'}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">챕터</span>
+                  <p className="font-medium">{currentChapter.title}</p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">페이지</span>
+                  <p className="font-medium">
+                    {currentChapter.startPage || 1}p - {currentChapter.endPage || 50}p
+                  </p>
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              
+              {existingNote && (
+                <div className="pt-4 border-t">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                    <span>
+                      작성일: {formatDate(existingNote.createdAt)}
+                    </span>
+                    {existingNote.updatedAt !== existingNote.createdAt && (
+                      <span>
+                        • 수정일: {formatDate(existingNote.updatedAt)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>학습 기록</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <RichTextEditor 
-              value={noteContent}
-              onChange={setNoteContent}
-            />
-            
-            <div className="flex gap-3">
-              <Button 
-                onClick={saveNote} 
-                disabled={!noteContent.trim()}
-                className="flex-1 gap-2"
-              >
-                <Save className="w-4 h-4" />
-                {existingNote ? '기록 수정하기' : '기록 저장하기'}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate(`/books/${encodeURIComponent(currentBook.title)}`)}
-              >
-                취소
-              </Button>
-            </div>
-            
-            <p className="text-xs text-muted-foreground">
-              💡 기록을 저장하면 해당 챕터가 자동으로 완료 처리됩니다.
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>학습 기록</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <RichTextEditor 
+                value={noteContent}
+                onChange={setNoteContent}
+              />
+              
+              <div className="flex gap-3">
+                <Button 
+                  onClick={saveNote} 
+                  disabled={!noteContent.trim()}
+                  className="flex-1 gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  {existingNote ? '기록 수정하기' : '기록 저장하기'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate(`/books/${encodeURIComponent(currentBook.title)}`)}
+                >
+                  취소
+                </Button>
+              </div>
+              
+              <p className="text-xs text-muted-foreground">
+                💡 기록을 저장하면 해당 챕터가 자동으로 완료 처리됩니다.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

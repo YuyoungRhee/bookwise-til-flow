@@ -8,6 +8,7 @@ const navItems = [
   { path: '/', label: '홈', icon: Book },
   { path: '/shared-books', label: '공유 책', icon: Users },
   { path: '/books', label: '개인 책', icon: Search },
+  { path: '/wishlist', label: '위시리스트', icon: Book },
   { path: '/note-history', label: '기록 히스토리', icon: Edit },
   { path: '/settings', label: '설정', icon: Calendar },
 ];

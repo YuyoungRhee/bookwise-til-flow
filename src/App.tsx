@@ -18,6 +18,9 @@ import BookDetail from './pages/BookDetail';
 import BookAddWizard from './pages/BookAddWizard';
 import SharedBookAddWizard from './pages/SharedBookAddWizard';
 import SharedBookDetail from './pages/SharedBookDetail';
+import BookCompletedList from './pages/BookCompletedList';
+import BookCompletedRecords from './pages/BookCompletedRecords';
+import BookWishlistList from './pages/BookWishlistList';
 
 const queryClient = new QueryClient();
 
@@ -57,6 +60,9 @@ function AppRoutes() {
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/shared-books/create" element={<ProtectedRoute><SharedBookAddWizard /></ProtectedRoute>} />
       <Route path="/shared-books/:bookId" element={<ProtectedRoute><SharedBookDetail /></ProtectedRoute>} />
+      <Route path="/completed-books" element={<ProtectedRoute><BookCompletedList /></ProtectedRoute>} />
+      <Route path="/completed-books/:bookId/records" element={<ProtectedRoute><BookCompletedRecords /></ProtectedRoute>} />
+      <Route path="/wishlist" element={<ProtectedRoute><BookWishlistList /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

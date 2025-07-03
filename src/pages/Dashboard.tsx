@@ -269,7 +269,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Today's Chapters */}
+          {/* 오늘 학습할 챕터 */}
           <Card className="book-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -284,33 +284,62 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Study Calendar */}
-          <StudyCalendar />
+          {/* 학습 달력 + 목표달성현황 + 오늘의진행률 통합 */}
+          <Card className="book-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                학습 달력
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col lg:flex-row gap-6">
+                {/* 달력 */}
+                <div className="flex-1 min-w-[280px]">
+                  <StudyCalendar />
+                </div>
+                {/* 목표달성현황 + 오늘의진행률 */}
+                <div className="flex flex-col gap-6 w-full max-w-xs">
+                  <WeeklyMonthlyProgress />
+                  <Card className="book-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-lg">오늘의 진행률</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-primary">2</div>
+                        <p className="text-sm text-muted-foreground">완료한 챕터</p>
+                      </div>
+                      <Progress value={40} className="progress-fill" />
+                      <p className="text-xs text-muted-foreground text-center">
+                        오늘 목표의 40% 달성
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Weekly/Monthly Progress */}
-          <WeeklyMonthlyProgress />
-
-          {/* Today's Progress */}
+          {/* Completed Books Link */}
           <Card className="book-shadow">
             <CardHeader>
-              <CardTitle className="text-lg">오늘의 진행률</CardTitle>
+              <CardTitle className="text-lg">학습 완료한 책</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">2</div>
-                <p className="text-sm text-muted-foreground">완료한 챕터</p>
+                <p className="text-muted-foreground mb-2">완독한 책을 모아볼 수 있어요</p>
+                <Link to="/completed-books">
+                  <Button variant="default" className="w-full">완료한 책 보러가기</Button>
+                </Link>
               </div>
-              <Progress value={40} className="progress-fill" />
-              <p className="text-xs text-muted-foreground text-center">
-                오늘 목표의 40% 달성
-              </p>
             </CardContent>
           </Card>
 
-          {/* Recent Notes */}
+          {/* 최근 학습 기록 */}
           <Card className="book-shadow">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">

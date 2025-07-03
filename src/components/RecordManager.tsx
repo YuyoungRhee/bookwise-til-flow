@@ -4,28 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate } from 'react-router-dom';
 
-// 리팩터링 2판 대표 챕터 mock
-const chapters = [
-  'CHAPTER 01 리팩터링: 첫 번째 예시',
-  'CHAPTER 02 리팩터링 원칙',
-  'CHAPTER 03 코드에서 나는 악취',
-  'CHAPTER 04 테스트 구축하기',
-  'CHAPTER 05 리팩터링 카탈로그 보는 법',
-  'CHAPTER 06 기본적인 리팩터링',
-  'CHAPTER 07 캡슐화',
-  'CHAPTER 08 기능 이동',
-  'CHAPTER 09 데이터 조직화',
-  'CHAPTER 10 조건부 로직 간소화',
-  'CHAPTER 11 API 리팩터링',
-  'CHAPTER 12 상속 다루기',
-];
-
 interface RecordManagerProps {
   initialChapter?: number;
   bookTitle?: string;
+  chapters?: string[];
 }
 
-export default function RecordManager({ initialChapter, bookTitle }: RecordManagerProps) {
+export default function RecordManager({ initialChapter, bookTitle, chapters: chaptersProp }: RecordManagerProps) {
+  const chapters = chaptersProp && chaptersProp.length > 0 ? chaptersProp : [
+    'CHAPTER 01 리팩터링: 첫 번째 예시',
+    'CHAPTER 02 리팩터링 원칙',
+    'CHAPTER 03 코드에서 나는 악취',
+    'CHAPTER 04 테스트 구축하기',
+    'CHAPTER 05 리팩터링 카탈로그 보는 법',
+    'CHAPTER 06 기본적인 리팩터링',
+    'CHAPTER 07 캡슐화',
+    'CHAPTER 08 기능 이동',
+    'CHAPTER 09 데이터 조직화',
+    'CHAPTER 10 조건부 로직 간소화',
+    'CHAPTER 11 API 리팩터링',
+    'CHAPTER 12 상속 다루기',
+  ];
   const [currentChapter, setCurrentChapter] = useState(initialChapter !== undefined ? initialChapter : 2);
   const [records, setRecords] = useState<Record<number, { content: string; date: string }>>({});
   const navigate = useNavigate();

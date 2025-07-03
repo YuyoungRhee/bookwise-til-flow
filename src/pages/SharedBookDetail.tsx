@@ -12,6 +12,7 @@ import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import Board from '@/components/Board';
 
 interface SharedBook {
   id: string;
@@ -41,6 +42,7 @@ export default function SharedBookDetail() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const [progressList, setProgressList] = useState<any[]>([]);
 
   useEffect(() => {
     setActiveTab(tabValue);
@@ -188,6 +190,50 @@ export default function SharedBookDetail() {
     }
   };
 
+  // 멤버별 진도 정보 fetch
+  const fetchProgressList = async (book: SharedBook) => {
+    if (!book || !book.members || book.members.length === 0) return;
+    const userIds = book.members.map(m => m.id);
+    // @ts-ignore: shared_book_progress는 supabase 타입에 아직 없음
+    const { data, error } = await (supabase as any)
+      .from('shared_book_progress')
+      .select('*')
+      .eq('book_id', book.id)
+      .in('user_id', userIds);
+    if (!error && data) setProgressList(data);
+    else setProgressList([]);
+  };
+
+  useEffect(() => {
+    if (currentBook) {
+      fetchProgressList(currentBook);
+    }
+  }, [currentBook]);
+
+  // 본인 진도(progress) 추출
+  const myProgress = user ? progressList.find(p => p.user_id === user.id) : undefined;
+
+  // Supabase에 본인 진도 저장/수정 함수
+  const handleSaveMyProgress = async (progress: any) => {
+    if (!currentBook || !user) return;
+    // @ts-ignore: shared_book_progress는 supabase 타입에 아직 없음
+    const { error } = await (supabase as any)
+      .from('shared_book_progress')
+      .upsert({
+        book_id: currentBook.id,
+        user_id: user.id,
+        completed_chapters: progress.completed_chapters,
+        completed_pages: progress.completed_pages,
+        progress_mode: progress.progress_mode,
+        is_completed: progress.is_completed,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: ['book_id', 'user_id'] });
+    if (!error) {
+      // 저장 후 진도 현황 새로고침
+      fetchProgressList(currentBook);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -250,8 +296,9 @@ export default function SharedBookDetail() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="chapters">챕터 관리</TabsTrigger>
-            <TabsTrigger value="plan">학습 계획</TabsTrigger>
+            <TabsTrigger value="plan">학습 계획 / 진도 관리</TabsTrigger>
             <TabsTrigger value="records">기록/히스토리</TabsTrigger>
+            <TabsTrigger value="board">게시판</TabsTrigger>
           </TabsList>
           <TabsContent value="chapters">
             <ChapterManager 
@@ -261,12 +308,57 @@ export default function SharedBookDetail() {
             />
           </TabsContent>
           <TabsContent value="plan">
+            {/* 1. 학습 계획/내 진도 입력(PlanManager) */}
             <PlanManager 
               pages={currentBook.pages} 
               parts={currentBook.parts} 
               chapters={currentBook.chapters} 
               bookId={currentBook.id} 
+              sharedMode={true}
+              userId={user?.id}
+              progress={myProgress}
+              onSaveProgress={handleSaveMyProgress}
             />
+            {/* 2. 멤버별 진도 현황 표 */}
+            <Card className="mb-6 mt-8">
+              <CardHeader>
+                <CardTitle>멤버별 진도 현황</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border">
+                    <thead>
+                      <tr className="bg-muted">
+                        <th className="px-2 py-1 border">멤버</th>
+                        <th className="px-2 py-1 border">완료 챕터</th>
+                        <th className="px-2 py-1 border">완료 페이지</th>
+                        <th className="px-2 py-1 border">진행률</th>
+                        <th className="px-2 py-1 border">완료 여부</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentBook.members.map(member => {
+                        const progress = progressList.find(p => p.user_id === member.id) || {};
+                        const totalChapters = currentBook.total_chapters || 0;
+                        const totalPages = currentBook.pages || 0;
+                        const percent = progress.progress_mode === 'page'
+                          ? (progress.completed_pages || 0) / (totalPages || 1) * 100
+                          : (progress.completed_chapters || 0) / (totalChapters || 1) * 100;
+                        return (
+                          <tr key={member.id}>
+                            <td className="px-2 py-1 border">{member.display_name || member.email || '익명'}</td>
+                            <td className="px-2 py-1 border">{progress.completed_chapters || 0} / {totalChapters}</td>
+                            <td className="px-2 py-1 border">{progress.completed_pages || 0} / {totalPages}</td>
+                            <td className="px-2 py-1 border">{Math.round(percent)}%</td>
+                            <td className="px-2 py-1 border text-center">{progress.is_completed ? '✅' : ''}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           <TabsContent value="records">
             <SharedRecordManager 
@@ -274,6 +366,9 @@ export default function SharedBookDetail() {
               bookId={currentBook.id}
               bookTitle={currentBook.title}
             />
+          </TabsContent>
+          <TabsContent value="board">
+            <Board bookId={currentBook.id} />
           </TabsContent>
         </Tabs>
       </div>

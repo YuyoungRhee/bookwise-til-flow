@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 
 interface Plan {
   chapter: string;
@@ -14,9 +15,13 @@ interface PlanManagerProps {
   chapters?: string[];
   bookId?: string;
   plan?: any;
+  sharedMode?: boolean;
+  userId?: string;
+  progress?: any;
+  onSaveProgress?: (progress: any) => Promise<void>;
 }
 
-export default function PlanManager({ pages, parts, chapters, bookId, plan: initialPlan }: PlanManagerProps) {
+export default function PlanManager({ pages, parts, chapters, bookId, plan: initialPlan, sharedMode = false, userId, progress, onSaveProgress }: PlanManagerProps) {
   const isJavaBook = bookId && decodeURIComponent(bookId).includes('이것이 자바다');
   const totalChapters = parts && parts.length > 0
     ? parts.reduce((sum, p) => sum + p.chapters.length, 0)
@@ -31,11 +36,40 @@ export default function PlanManager({ pages, parts, chapters, bookId, plan: init
   const [expectedEnd, setExpectedEnd] = useState('');
   const [autoDaily, setAutoDaily] = useState<{ chapters: number; pages: number } | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [progressMode, setProgressMode] = useState<'chapter' | 'page'>('chapter');
+  const [completedChapters, setCompletedChapters] = useState(0);
+  const [completedPages, setCompletedPages] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   // plan이 바뀌면 입력값도 동기화
   useEffect(() => {
     if (initialPlan) setPlan(initialPlan);
   }, [initialPlan]);
+
+  // 공유책 모드: 진도 상태를 Supabase progress prop에서 불러옴
+  useEffect(() => {
+    if (sharedMode && progress) {
+      setCompletedChapters(progress.completed_chapters || 0);
+      setCompletedPages(progress.completed_pages || 0);
+      setProgressMode(progress.progress_mode || 'chapter');
+      setIsCompleted(!!progress.is_completed);
+    }
+  }, [sharedMode, progress]);
+
+  // 책 데이터에서 기존 진도/완료 상태 불러오기
+  useEffect(() => {
+    if (sharedMode) return;
+    if (!bookId) return;
+    const stored = window.localStorage.getItem('dashboardBooks');
+    const books = stored ? JSON.parse(stored) : [];
+    const idx = books.findIndex((b: any) => b.title === bookId);
+    if (idx !== -1) {
+      setCompletedChapters(books[idx].completedChapters || 0);
+      setCompletedPages(books[idx].completedPages || 0);
+      setProgressMode(books[idx].progressMode || 'chapter');
+      setIsCompleted(!!books[idx].isCompleted);
+    }
+  }, [bookId, sharedMode]);
 
   // 저장 시 localStorage와 이벤트로 반영
   const handleSave = () => {
@@ -118,18 +152,168 @@ export default function PlanManager({ pages, parts, chapters, bookId, plan: init
     });
   };
 
+  // 진도 저장: 공유책이면 Supabase, 아니면 localStorage
+  const saveProgress = async (newCompletedChapters: number, newCompletedPages: number, newProgressMode: 'chapter' | 'page') => {
+    if (sharedMode && onSaveProgress) {
+      await onSaveProgress({
+        completed_chapters: newCompletedChapters,
+        completed_pages: newCompletedPages,
+        progress_mode: newProgressMode,
+        is_completed: isCompleted,
+      });
+      return;
+    }
+    if (!bookId) return;
+    const stored = window.localStorage.getItem('dashboardBooks');
+    const books = stored ? JSON.parse(stored) : [];
+    const idx = books.findIndex((b: any) => b.title === bookId);
+    if (idx !== -1) {
+      books[idx].completedChapters = newCompletedChapters;
+      books[idx].completedPages = newCompletedPages;
+      books[idx].progressMode = newProgressMode;
+      window.localStorage.setItem('dashboardBooks', JSON.stringify(books));
+      window.dispatchEvent(new CustomEvent('add-book', { detail: books[idx] }));
+    }
+  };
+
+  const handleProgressModeChange = (mode: 'chapter' | 'page') => {
+    setProgressMode(mode);
+    saveProgress(
+      mode === 'chapter' ? completedChapters : 0,
+      mode === 'page' ? completedPages : 0,
+      mode
+    );
+  };
+
+  const handleCompletedChaptersChange = (val: string) => {
+    const num = Math.max(0, Math.min(Number(val), totalChapters));
+    setCompletedChapters(num);
+    saveProgress(num, completedPages, progressMode);
+  };
+  const handleCompletedPagesChange = (val: string) => {
+    const num = Math.max(0, Math.min(Number(val), pages));
+    setCompletedPages(num);
+    saveProgress(completedChapters, num, progressMode);
+  };
+
+  // 학습 완료 상태 저장
+  const setBookCompleted = (completed: boolean) => {
+    setIsCompleted(completed);
+    if (sharedMode && onSaveProgress) {
+      onSaveProgress({
+        completed_chapters: completedChapters,
+        completed_pages: completedPages,
+        progress_mode: progressMode,
+        is_completed: completed,
+      });
+      return;
+    }
+    if (!bookId) return;
+    const stored = window.localStorage.getItem('dashboardBooks');
+    const books = stored ? JSON.parse(stored) : [];
+    const idx = books.findIndex((b: any) => b.title === bookId);
+    if (idx !== -1) {
+      books[idx].isCompleted = completed;
+      window.localStorage.setItem('dashboardBooks', JSON.stringify(books));
+      window.dispatchEvent(new CustomEvent('add-book', { detail: books[idx] }));
+    }
+  };
+
+  // 본인만 입력/수정 가능, 타인은 읽기 전용 안내
+  const isEditable = true;
+
   const renderReadOnly = () => (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>학습 계획</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>총 페이지: <b>{pages}</b>쪽 / 총 챕터: <b>{totalChapters}</b></div>
+          <div>목표 완료일: <b>{plan.targetDate || '-'}</b></div>
+          <div>하루 학습량(챕터): <b>{plan.dailyChapters || '-'}</b></div>
+          <div>하루 학습량(페이지): <b>{plan.dailyPages || '-'}</b></div>
+          <div>예상 완료일: <b>{plan.expectedEnd || plan.targetDate || '-'}</b></div>
+          {isEditable && <Button className="mt-4" onClick={() => setEditMode(true)}>수정</Button>}
+        </CardContent>
+      </Card>
+      <div className="mt-6">{renderProgressManager()}</div>
+    </>
+  );
+
+  const renderProgressManager = () => (
     <Card>
       <CardHeader>
-        <CardTitle>학습 계획</CardTitle>
+        <CardTitle>진도 관리</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>총 페이지: <b>{pages}</b>쪽 / 총 챕터: <b>{totalChapters}</b></div>
-        <div>목표 완료일: <b>{plan.targetDate || '-'}</b></div>
-        <div>하루 학습량(챕터): <b>{plan.dailyChapters || '-'}</b></div>
-        <div>하루 학습량(페이지): <b>{plan.dailyPages || '-'}</b></div>
-        <div>예상 완료일: <b>{plan.expectedEnd || plan.targetDate || '-'}</b></div>
-        <Button className="mt-4" onClick={() => setEditMode(true)}>수정</Button>
+        <div className="flex gap-4 items-center">
+          <label>
+            <input
+              type="radio"
+              checked={progressMode === 'chapter'}
+              onChange={() => handleProgressModeChange('chapter')}
+              className="mr-2"
+            />
+            챕터 기준
+          </label>
+          <label>
+            <input
+              type="radio"
+              checked={progressMode === 'page'}
+              onChange={() => handleProgressModeChange('page')}
+              className="mr-2"
+            />
+            페이지 기준
+          </label>
+        </div>
+        {progressMode === 'chapter' ? (
+          <div className="flex items-center gap-2">
+            <span>완료 챕터 수:</span>
+            <Input
+              type="number"
+              min={0}
+              max={totalChapters}
+              value={completedChapters}
+              onChange={e => handleCompletedChaptersChange(e.target.value)}
+              className="w-24"
+            />
+            <span>/ {totalChapters}</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span>완료 페이지 수:</span>
+            <Input
+              type="number"
+              min={0}
+              max={pages}
+              value={completedPages}
+              onChange={e => handleCompletedPagesChange(e.target.value)}
+              className="w-24"
+            />
+            <span>/ {pages}</span>
+          </div>
+        )}
+        <div className="mt-2">
+          <Progress value={progressMode === 'chapter' && totalChapters > 0 ? (completedChapters / totalChapters) * 100 : progressMode === 'page' && pages > 0 ? (completedPages / pages) * 100 : 0} />
+          <div className="text-right text-xs mt-1">
+            {progressMode === 'chapter' && totalChapters > 0
+              ? `${((completedChapters / totalChapters) * 100).toFixed(1)}%`
+              : progressMode === 'page' && pages > 0
+              ? `${((completedPages / pages) * 100).toFixed(1)}%`
+              : '0%'}
+          </div>
+        </div>
+        <div className="mt-4">
+          {isCompleted ? (
+            <Button variant="outline" className="bg-green-100 text-green-700 cursor-default mr-2" disabled>학습 완료됨</Button>
+          ) : (
+            <Button variant="default" onClick={() => setBookCompleted(true)}>학습 완료로 표시</Button>
+          )}
+          {isCompleted && (
+            <Button variant="destructive" onClick={() => setBookCompleted(false)}>완료 취소</Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

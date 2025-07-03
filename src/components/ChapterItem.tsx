@@ -39,7 +39,8 @@ export default function ChapterItem({
     <Card className={cn(
       "transition-all duration-200 hover:book-shadow cursor-pointer group",
       isCompleted && "bg-accent/10 border-accent/30",
-      isToday && "ring-2 ring-primary ring-offset-2"
+      isToday && "",
+      isToday && "hover:ring-2 hover:ring-primary hover:ring-offset-2"
     )} onClick={handleClick}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">

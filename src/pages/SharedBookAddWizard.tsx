@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Book } from 'lucide-react';
+import Navigation from '@/components/Navigation';
 
 // BookSearch와 유사한 mock 데이터/검색 로직 (실제 구현시 API 연동)
 const MOCK_BOOKS = [
@@ -300,38 +301,41 @@ export default function SharedBookAddWizard() {
   // 렌더링 분기
   if (step === 1) {
     return (
-      <div className="max-w-2xl mx-auto p-6 space-y-6">
-        <h1 className="text-2xl font-bold mb-4">공유책 만들기</h1>
-        <Card>
-          <CardHeader>
-            <CardTitle>책 검색</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              placeholder="책 제목, 저자 등으로 검색"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            />
-            <Button onClick={handleSearch}>검색</Button>
-            <div className="space-y-2">
-              {searchResults.map((book, idx) => (
-                <Card key={idx} className="p-3 cursor-pointer hover:bg-muted" onClick={() => handleSelectBook(book)}>
-                  <div className="flex gap-4 items-center">
-                    <img src={book.cover} alt={book.title} className="w-16 h-24 object-cover rounded border" />
-                    <div className="flex-1">
-                      <div className="font-bold">{book.title}</div>
-                      <div className="text-sm text-muted-foreground">{book.author}</div>
-                      <div className="text-xs text-muted-foreground">{book.publisher} / {book.pubDate}</div>
-                      <div className="text-xs text-muted-foreground line-clamp-2">{book.description}</div>
+      <>
+        <Navigation />
+        <div className="max-w-2xl mx-auto p-6 space-y-6">
+          <h1 className="text-2xl font-bold mb-4">공유책 만들기</h1>
+          <Card>
+            <CardHeader>
+              <CardTitle>책 검색</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input
+                placeholder="책 제목, 저자 등으로 검색"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              />
+              <Button onClick={handleSearch}>검색</Button>
+              <div className="space-y-2">
+                {searchResults.map((book, idx) => (
+                  <Card key={idx} className="p-3 cursor-pointer hover:bg-muted" onClick={() => handleSelectBook(book)}>
+                    <div className="flex gap-4 items-center">
+                      <img src={book.cover} alt={book.title} className="w-16 h-24 object-cover rounded border" />
+                      <div className="flex-1">
+                        <div className="font-bold">{book.title}</div>
+                        <div className="text-sm text-muted-foreground">{book.author}</div>
+                        <div className="text-xs text-muted-foreground">{book.publisher} / {book.pubDate}</div>
+                        <div className="text-xs text-muted-foreground line-clamp-2">{book.description}</div>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     );
   }
   if (step === 2) return <div className="max-w-2xl mx-auto p-6">{renderChapters()}</div>;

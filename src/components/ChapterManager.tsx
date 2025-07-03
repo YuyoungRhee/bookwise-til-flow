@@ -100,36 +100,54 @@ export default function ChapterManager({ parts, chapters, bookId, setChapters: s
           </div>
           <div className="space-y-2">
             {chaptersState.map(ch => (
-              <Card key={ch.id} className={`flex items-center p-2 gap-2 ${ch.isPart ? 'bg-muted font-bold' : ''}`}>
-                <Badge
-                  variant={ch.isCompleted ? 'default' : 'outline'}
-                  className="cursor-pointer"
-                  onClick={() => !ch.isPart && toggleComplete(ch.id)}
-                >
-                  {ch.isCompleted ? '완료' : ch.isPart ? 'PART' : '진행중'}
-                </Badge>
-                <span className={ch.isCompleted ? 'line-through text-muted-foreground' : ''}>{ch.title}</span>
-                {!ch.isPart && (
-                  <>
-                    {editId === ch.id ? (
-                      <>
-                        <Input
-                          value={editTitle}
-                          onChange={e => setEditTitle(e.target.value)}
-                          className="w-40"
-                        />
-                        <Button size="sm" onClick={() => saveEdit(ch.id)}>저장</Button>
-                        <Button size="sm" variant="outline" onClick={() => setEditId(null)}>취소</Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button size="sm" variant="outline" onClick={() => startEdit(ch.id, ch.title)}>수정</Button>
-                        <Button size="sm" variant="destructive" onClick={() => deleteChapter(ch.id)}>삭제</Button>
-                      </>
+              <div key={ch.id} className="flex items-center gap-2">
+                <Card className={`flex items-center px-4 py-2 flex-1 ${ch.isPart ? 'bg-muted font-bold' : ''}`}
+                  style={{ minWidth: 0 }}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${ch.isPart ? 'bg-primary text-white border-primary' : 'bg-white text-primary border-primary'}`}>{ch.isPart ? 'PART' : 'Chapter'}</span>
+                  <div className="flex-1 min-w-0 ml-4">
+                    <span className={ch.isCompleted ? 'line-through text-muted-foreground' : ''}>{ch.title}</span>
+                  </div>
+                  <div className="flex gap-1 min-w-[120px] ml-4">
+                    {!ch.isPart && (
+                      editId === ch.id ? (
+                        <>
+                          <Input
+                            value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)}
+                            className="w-40"
+                          />
+                          <Button size="sm" onClick={() => saveEdit(ch.id)}>저장</Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditId(null)}>취소</Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => startEdit(ch.id, ch.title)}>수정</Button>
+                          <Button size="sm" variant="destructive" onClick={() => deleteChapter(ch.id)}>삭제</Button>
+                        </>
+                      )
                     )}
-                  </>
-                )}
-              </Card>
+                  </div>
+                </Card>
+                <div className="flex items-center min-w-[90px] justify-end">
+                  {ch.isPart ? (
+                    <Button size="sm" className="text-xs px-2 py-1 h-7" variant="outline" onClick={() => {
+                      // PART를 챕터로
+                      const newChapters = chaptersState.map(item =>
+                        item.id === ch.id ? { ...item, isPart: false } : item
+                      );
+                      setChapters(newChapters);
+                    }}>챕터로</Button>
+                  ) : (
+                    <Button size="sm" className="text-xs px-2 py-1 h-7" variant="outline" onClick={() => {
+                      // 챕터를 PART로
+                      const newChapters = chaptersState.map(item =>
+                        item.id === ch.id ? { ...item, isPart: true } : item
+                      );
+                      setChapters(newChapters);
+                    }}>PART로</Button>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
         </>

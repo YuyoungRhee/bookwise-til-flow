@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 interface BookCardProps {
   title: string;
@@ -11,6 +13,8 @@ interface BookCardProps {
   totalChapters: number;
   completedChapters: number;
   onClick?: () => void;
+  showRecordsButton?: boolean;
+  recordsLink?: string;
 }
 
 export default function BookCard({
@@ -20,7 +24,9 @@ export default function BookCard({
   progress,
   totalChapters,
   completedChapters,
-  onClick
+  onClick,
+  showRecordsButton,
+  recordsLink
 }: BookCardProps) {
   const navigate = useNavigate();
   const handleClick = () => {
@@ -44,11 +50,18 @@ export default function BookCard({
               <span className="text-muted-foreground text-xs">No Cover</span>
             </div>
           )}
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg group-hover:text-primary transition-colors study-text line-clamp-2">
-              {title}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">{author}</p>
+          <div className="flex-1 min-w-0 flex items-start justify-between">
+            <div className="min-w-0">
+              <CardTitle className="text-lg group-hover:text-primary transition-colors study-text line-clamp-2">
+                {title}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">{author}</p>
+            </div>
+            {showRecordsButton && recordsLink && (
+              <Link to={recordsLink} onClick={e => e.stopPropagation()}>
+                <Button size="sm" variant="outline" className="ml-2 mt-1">기록 한 눈에 보기</Button>
+              </Link>
+            )}
           </div>
         </div>
       </CardHeader>

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import ChapterSetSelector from '@/components/ChapterSetSelector';
 import { useChapterSets, BookInfo } from '@/hooks/useChapterSets';
 import { useAuth } from '@/contexts/AuthContext';
+import Navigation from '@/components/Navigation';
 
 const JAVA_PARTS = [
   {
@@ -270,11 +271,14 @@ export default function BookAddWizard() {
   );
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold mb-4">책 등록 플로우</h1>
-      {step === 1 && renderChapters()}
-      {step === 2 && renderPlan()}
-      {step === 3 && renderConfirm()}
-    </div>
+    <>
+      <Navigation />
+      <div className="max-w-2xl mx-auto p-6 space-y-6">
+        <h1 className="text-2xl font-bold mb-4">책 등록 플로우</h1>
+        {step === 1 && renderChapters()}
+        {step === 2 && renderPlan()}
+        {step === 3 && renderConfirm()}
+      </div>
+    </>
   );
 } 
