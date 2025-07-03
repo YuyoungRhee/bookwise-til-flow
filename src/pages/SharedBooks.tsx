@@ -80,8 +80,25 @@ export default function SharedBooks() {
         index === self.findIndex(b => b.id === book.id)
       );
 
-      console.log('Final unique books:', uniqueBooks);
-      setBooks(uniqueBooks);
+      // 5. Get member count for each book
+      const booksWithMemberCount = await Promise.all(
+        uniqueBooks.map(async (book) => {
+          const { count, error: countError } = await supabase
+            .from('book_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('book_id', book.id);
+
+          console.log(`Member count for book ${book.id}:`, count, countError);
+          
+          return {
+            ...book,
+            member_count: count || 0
+          };
+        })
+      );
+
+      console.log('Final books with member count:', booksWithMemberCount);
+      setBooks(booksWithMemberCount);
 
       if (createdError || membershipError) {
         console.error('Error fetching books:', { createdError, membershipError });

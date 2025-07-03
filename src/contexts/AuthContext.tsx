@@ -59,6 +59,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     });
+
+    // 테스트용 공유 책 멤버십 자동 추가
+    if (!error) {
+      try {
+        const user = (await supabase.auth.getUser()).data.user;
+        if (user) {
+          // 사용자 프로필 생성
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert([
+              {
+                user_id: user.id,
+                display_name: displayName,
+                email: email
+              }
+            ])
+            .select();
+
+          if (profileError && !profileError.message.includes('duplicate key')) {
+            console.error('Profile creation error:', profileError);
+          }
+
+          // 테스트용 공유 책 멤버십 추가
+          const { error: membershipError } = await supabase
+            .from('book_members')
+            .insert([
+              {
+                book_id: '08d9a283-2b3b-48c2-82c7-3f53458b5c8d',
+                user_id: user.id
+              }
+            ])
+            .select();
+
+          if (membershipError && !membershipError.message.includes('duplicate key')) {
+            console.error('Test book membership error:', membershipError);
+          }
+        }
+      } catch (err) {
+        console.error('Error adding test book membership:', err);
+      }
+    }
+
     return { error };
   };
 
